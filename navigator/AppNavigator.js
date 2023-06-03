@@ -17,9 +17,9 @@ export default function AppNavigator() {
         component={HomeScreen}
         options={{
           tabBarLabel: "Inicio",
-          /* tabBarIcon: ({ size, color }) => (
+          tabBarIcon: ({ size, color }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
-          ), */
+          ),
           headerShown: false,
         }}
       />
@@ -29,9 +29,9 @@ export default function AppNavigator() {
         options={{
           headerShown: false,
           tabBarLabel: "Lista Usuarios",
-          /* tabBarIcon: ({ size, color }) => (
-            <MaterialCommunityIcons name="plus" color={color} size={size} />
-          ), */
+          tabBarIcon: ({ size, color }) => (
+            <MaterialCommunityIcons name="view-list" color={color} size={size} />
+          ),
         }}
       />
       <Tab.Screen
@@ -40,9 +40,9 @@ export default function AppNavigator() {
         options={{
           headerShown: false,
           tabBarLabel: "Login/Logout",
-          /* tabBarIcon: ({ size, color }) => (
+          tabBarIcon: ({ size, color }) => (
             <MaterialCommunityIcons name="account" color={color} size={size} />
-          ), */
+          ),
         }}
       />
     </Tab.Navigator>
