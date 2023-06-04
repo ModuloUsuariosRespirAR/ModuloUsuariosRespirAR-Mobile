@@ -1,35 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ImageBackground, Image } from 'react-native';
+import { View, StyleSheet, ImageBackground, Image, Modal, TextInput, Animated } from 'react-native';
 import { Text, Button, IconButton } from "@react-native-material/core";
 import backgroundImage from "../assets/smartcity.jpg";
 import { HStack } from 'react-native-flex-layout';
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
+import { SelectList } from 'react-native-dropdown-select-list'
 
 
 const HomeScreen = () => {
   const [userCount, setUserCount] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [selectedRole, setSelectedRole] = React.useState("");
+
+  const [showAddUsrModal, setShowAddUsrModal] = useState(false);
+  const [showEditUsrModal, setShowEditUsrModal] = useState(false);
+  
+  const [showAddRoleModal, setShowAddRoleModal] = useState(false);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
 
   useEffect(() => {
-    // Aquí puedes realizar una llamada a la API o ejecutar la lógica necesaria para obtener el recuento de usuarios
-    // En este ejemplo, simplemente estableceremos un valor estático
     setUserCount(10);
   }, []);
 
   const handleAddUser = () => {
-    // Aquí puedes implementar la lógica para agregar un usuario
-    // Puedes mostrar un modal o navegar a una pantalla de creación de usuarios
-    console.log('Agregar usuario');
+    setShowAddUsrModal(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleEditUser = () => {
-    // Aquí puedes implementar la lógica para editar un usuario
-    // Puedes mostrar un modal o navegar a una pantalla de edición de usuarios
-    console.log('Editar usuario');
+    setShowEditUsrModal(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleCloseAddUsrModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowAddUsrModal(false);
+    });
+  };
+
+  const handleCloseEditUsrModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowEditUsrModal(false);
+    });
+  };
+
+  const handleCloseModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowModal(false);
+    });
   };
 
   const handleDeleteUser = () => {
-    // Aquí puedes implementar la lógica para eliminar un usuario
-    // Puedes mostrar un modal de confirmación y luego realizar la eliminación
     console.log('Eliminar usuario');
   };
 
@@ -69,10 +111,25 @@ const HomeScreen = () => {
     notificationsContainer: {
       marginBottom: 25,
     },
-
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: '#fff',
+      borderRadius: 10,
+      padding: 20,
+      opacity: fadeAnim,
+    },
+    modalInput: {
+      height: 40,
+      width: 200,
+      marginVertical: 10,
+      borderWidth: 1,
+      padding: 10,
+    },
   });
-
-
 
   return (
     <View style={styles.mainContainer}>
@@ -84,13 +141,13 @@ const HomeScreen = () => {
           <HStack m={4} spacing={6}>
             <Button title="Agregar Usuario" color="#00CEFE" onPress={handleAddUser} />
             <IconButton icon={props => <Icon name="pencil" {...props} />}  onPress={handleEditUser}/>
-            <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleEditUser}/>
+            <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleDeleteUser}/>
           </HStack>
 
           <HStack m={4} spacing={6}>
             <Button style={styles.button} color="#00CEFE" title="Agregar Rol" onPress={handleAddUser} />
             <IconButton icon={props => <Icon name="pencil" {...props} />}  onPress={handleEditUser}/>
-            <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleEditUser}/>
+            <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleDeleteUser}/>
           </HStack>
           
         </View>
@@ -106,6 +163,108 @@ const HomeScreen = () => {
             <Text>Cantidad de roles: {userCount}</Text>
           </View>
         </View>
+
+{/*         <Modal visible={showModal} transparent={true} onRequestClose={handleCloseModal}>
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>INICIA SESIÓN</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Usuario"
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Contraseña"
+              />
+              <Button color="#359AF2" title="Guardar" onPress={handleCloseModal} />
+              <Button color="#FF0000" title="Cancelar" onPress={handleCloseModal} />
+            </Animated.View>
+          </View>
+        </Modal> */}
+
+        <Modal visible={showAddUsrModal} transparent={true} onRequestClose={handleCloseAddUsrModal}>
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>Agregar Usuario</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Usuario"
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Contraseña"
+              />
+              <Button color="#359AF2" title="Agregar" onPress={handleCloseAddUsrModal} />
+              <Button color="#FF0000" title="Cancelar" onPress={handleCloseAddUsrModal} />
+            </Animated.View>
+          </View>
+        </Modal>
+
+        <Modal visible={showEditUsrModal} transparent={true} onRequestClose={handleCloseEditUsrModal}>
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>Editar Usuario</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Usuario"
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Contraseña"
+              />
+              <Text>Agregar Rol</Text>
+              <SelectList
+                setSelected={(val) => setSelectedRole(val)} 
+                data={data = [
+                  {key:'1', value:'Rol1', disabled:true},
+                  {key:'2', value:'Rol2'},
+                ]} 
+                save="value"
+              />
+              <Button color="#359AF2" title="Guardar" onPress={handleCloseEditUsrModal} />
+              <Button color="#FF0000" title="Cancelar" onPress={handleCloseEditUsrModal} />
+            </Animated.View>
+          </View>
+        </Modal>
+
+
+  {/*       MODALS PARA ROLES
+  <Modal visible={showModal} transparent={true} onRequestClose={handleCloseModal}>
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>Crear Rol</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Usuario"
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Contraseña"
+              />
+              <Button color="#359AF2" title="Guardar" onPress={handleCloseModal} />
+              <Button color="#FF0000" title="Cancelar" onPress={handleCloseModal} />
+            </Animated.View>
+          </View>
+        </Modal>
+
+        <Modal visible={showModal} transparent={true} onRequestClose={handleCloseModal}>
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>INICIA SESIÓN</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Usuario"
+              />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Contraseña"
+              />
+              <Button color="#359AF2" title="Guardar" onPress={handleCloseModal} />
+              <Button color="#FF0000" title="Cancelar" onPress={handleCloseModal} />
+            </Animated.View>
+          </View>
+        </Modal> */}
+
 
       </ImageBackground>
     </View>
