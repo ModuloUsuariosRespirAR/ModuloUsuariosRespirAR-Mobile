@@ -82,13 +82,13 @@ const HomeScreen = () => {
         <View style={styles.container}>
 
           <HStack m={4} spacing={6}>
-            <Button title="Agregar Usuario" color="#F29D35" onPress={handleAddUser} />
+            <Button title="Agregar Usuario" color="#00CEFE" onPress={handleAddUser} />
             <IconButton icon={props => <Icon name="pencil" {...props} />}  onPress={handleEditUser}/>
             <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleEditUser}/>
           </HStack>
 
           <HStack m={4} spacing={6}>
-            <Button style={styles.button} color="#F29D35" title="Agregar Rol" onPress={handleAddUser} />
+            <Button style={styles.button} color="#00CEFE" title="Agregar Rol" onPress={handleAddUser} />
             <IconButton icon={props => <Icon name="pencil" {...props} />}  onPress={handleEditUser}/>
             <IconButton icon={props => <Icon name="delete" {...props} />}  onPress={handleEditUser}/>
           </HStack>
