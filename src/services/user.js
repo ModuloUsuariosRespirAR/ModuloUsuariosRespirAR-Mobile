@@ -12,3 +12,17 @@ export const login = async ({ data }) => {
     throw new error();
   }
 };
+
+export const getUsers = async ({ token }) => {
+  try {
+    const response = await axios.get(
+      Constants.manifest.extra.backendUrl + '/users/list',
+      {
+        headers: { 'X-Auth-token': token }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new error();
+  }
+};

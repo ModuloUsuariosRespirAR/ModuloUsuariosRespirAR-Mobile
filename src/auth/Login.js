@@ -39,9 +39,6 @@ const Login = () => {
           description:
             'El usuario ó contraseña ingresado es incorrecto ó no se encuentra registrado'
         });
-      } else {
-        // navigation.navigate('HomeStack', { screen: 'Home' });
-        console.log(result);
       }
     } catch (error) {
       toast.show({
