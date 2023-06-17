@@ -25,9 +25,9 @@ export const AuthProvider = ({ children }) => {
     const usersList = await getUsers({ token });
     console.log('🚀 ~ file: authContext.js:26 ~ usersList:', usersList);
     if (usersList !== null) {
-      setUsersList(usersList);
+      return setUsersList(usersList.users);
     }
-    return usersList;
+    return setUsersList([]);
   };
 
   const value = {
