@@ -4,6 +4,7 @@ import { HomeStack } from '../navigator/HomeStack';
 import { UserEditStack } from '../navigator/UserEditStack';
 import { UserListStack } from '../navigator/UserListStack';
 import { ProfileStack } from '../navigator/ProfileStack';
+import { RoleListStack } from '../navigator/RoleListStack';
 import React, { useState } from 'react';
 import { Dimensions } from 'react-native';
 import { SceneMap, TabView } from 'react-native-tab-view';
@@ -12,6 +13,7 @@ const HomeScreeen = () => <HomeStack></HomeStack>;
 const UserEdit = () => <UserEditStack></UserEditStack>;
 const UserList = () => <UserListStack></UserListStack>;
 const Profile = () => <ProfileStack></ProfileStack>;
+const RolesList = () => <RoleListStack/>;
 
 const initialLayout = {
   width: Dimensions.get('window').width
@@ -21,6 +23,7 @@ const renderScene = SceneMap({
   home: HomeScreeen,
   // edit: UserEdit,
   list: UserList,
+  rol: RolesList,
   profile: Profile
 });
 
@@ -50,6 +53,15 @@ export const TabBarComponent = () => {
     {
       key: 'list',
       name: 'Usuarios',
+      icon: (color, active) => {
+        return (
+          <Ionicons name="list-outline" size={active ? 25 : 20} color={color} />
+        );
+      }
+    },
+    {
+      key: 'rol',
+      name: 'Roles',
       icon: (color, active) => {
         return (
           <Ionicons name="list-outline" size={active ? 25 : 20} color={color} />

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { login, getUsers } from '../services/user';
+import { login, getUsers, getRoles } from '../services/user';
 
 export const AuthContext = createContext({});
 
@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState('');
   const [usersList, setUsersList] = useState([]);
+  const [rolesList, setRolesList] = useState([]);
 
   const loginUser = async ({ data }) => {
     const userLogged = await login({ data });
@@ -30,8 +31,18 @@ export const AuthProvider = ({ children }) => {
     return setUsersList([]);
   };
 
+  const loadRoles = async () => {
+    const rolesList = await getRoles({ token });
+    console.log('🚀 ~ file: authContext.js:26 ~ usersList:', rolesList);
+    if (rolesList !== null) {
+      return setRolesList(rolesList.roles);
+    }
+    return setRolesList([]);
+  };
+
   const value = {
     loadUsers,
+    loadRoles,
     isLoading,
     isLoggedIn,
     loginUser,
@@ -40,7 +51,8 @@ export const AuthProvider = ({ children }) => {
     setUser,
     token,
     user,
-    usersList
+    usersList,
+    rolesList
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

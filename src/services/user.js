@@ -26,3 +26,18 @@ export const getUsers = async ({ token }) => {
     throw new error();
   }
 };
+
+
+export const getRoles = async ({ token }) => {
+  try {
+    const response = await axios.get(
+      Constants.manifest.extra.backendUrl + '/roles/list',
+      {
+        headers: { 'X-Auth-token': token }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new error();
+  }
+};
