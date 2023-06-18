@@ -2,39 +2,50 @@ import { useAuth } from '../context/authContext';
 import { ScrollView, useToast } from 'native-base';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Modal, Animated, TextInput, Pressable } from 'react-native';
-import { Button, IconButton } from '@react-native-material/core';
-import Icon from '@expo/vector-icons';
-import { DataTable, Switch } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+import { DataTable, Switch, Button } from 'react-native-paper';
 
 
 import { SelectList } from 'react-native-dropdown-select-list';
 
+
 const UserList = () => {
   const [isSwitchOn, setIsSwitchOn] = React.useState(true);
-  const { loadUsers, usersList, token, acessToken } = useAuth();
+  const { loadUsers, usersList, token, acessToken,createNewUser, userModification, userDeletation, } = useAuth();
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
   
+  const [selectedUser, setSelectedUser] = useState(null);
+
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showAddUsrModal, setShowAddUsrModal] = useState(false);
+  const [showEditUsrModal, setShowEditUsrModal] = useState(false);
+  const [showDeleteUsrModal, setShowDeleteUsrModal] = useState(false);
 
-  const {createNewUser, createdUser} = useAuth();
-
+  const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = React.useState('');
+
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
 
   const toast = useToast();
 
 
   useEffect(() => loadUsers(), []);
  
-  const handleAddUser = () => {
+  const showModalAddUser = () => {
     setShowAddUsrModal(true);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true
     }).start();
+
   };
 
   const handleCloseAddUsrModal = () => {
@@ -55,16 +66,14 @@ const UserList = () => {
       });
     }
 
-    console.log("token", token)
-
     try {
       const result = await createNewUser(
         token,
         acessToken,
-        username,
+        displayName,
         username,
         email,
-        "1234"
+        password
       );
       if (result === null) {
         toast.show({
@@ -80,9 +89,67 @@ const UserList = () => {
       ;
     }
 
+    //Actualizar lista de usuarios funcion
 
-    useEffect(() => loadUsers(), []);
+    handleCloseAddUsrModal()
+    
   };
+
+  const showModalEditUser = (userData) => {
+    setSelectedUser(userData);
+
+    setEditDisplayName(userData.displayName);
+    setEditUsername(userData.username);
+    setEditEmail(userData.email);
+    setEditPassword(userData.password);
+
+    console.log(userData)
+
+    setShowEditUsrModal(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true
+    }).start();
+
+  };
+
+  const handleCloseEditUsrModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true
+    }).start(() => {
+      setShowEditUsrModal(false);
+    });
+  };
+
+
+  const showModalDeleteUser = (userData) => {
+    setSelectedUser(userData);
+
+    console.log(userData)
+
+    setShowDeleteUsrModal(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true
+    }).start();
+
+  };
+
+  const handleCloseDeleteUsrModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true
+    }).start(() => {
+      setShowDeleteUsrModal(false);
+    });
+  };
+
+
 
   const styles = StyleSheet.create({
     container: {
@@ -161,19 +228,26 @@ const UserList = () => {
   const headers = ['Username', 'Email', 'Habilitado', ''];
   //const headers = ['Username', 'Email', 'Habilitado', 'Fecha Password'];
 
+  const handleEditUser = () => {
+    console.log('Datos del usuario Edit:', selectedUser);
+    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
+    userModification(token, acessToken, selectedUser.id, editUsername)
+  };
+
+  const handleDeleteUser = () => {
+    console.log('Datos del usuario Delete:', selectedUser);
+    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
+    userDeletation(token, acessToken, selectedUser.id)
+  };
+
   return (
     <View style={styles.container}>
-      {/* <Text>Lista de usuarios</Text>
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <Text>{item.name}</Text>}
-      /> */}
       <Button
-              title="Agregar Usuario"
-              color="#00CEFE"
-              onPress={handleAddUser}
-            />
+        mode="contained"
+        title="Agregar Usuario"
+        buttonColor="#00CEFE"
+        onPress={showModalAddUser}
+      >Agregar Usuario</Button>
       <ScrollView horizontal>
         <DataTable>
           <DataTable.Header style={styles.tableHeader}>
@@ -185,7 +259,7 @@ const UserList = () => {
           </DataTable.Header>
           {React.Children.toArray(
             usersList.map((user) => (
-              <DataTable.Row>
+              <DataTable.Row key={user.id}>
                 <DataTable.Cell style={styles.cell}>
                   <Text>{user.username}</Text>
                 </DataTable.Cell>
@@ -200,21 +274,43 @@ const UserList = () => {
                   />
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.cell}>
-                <Text>Edit</Text>
-
-                {/* 
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   
-                  <Pressable onPress={() => console.log(user.username + ", edit: " + user.email)}>
-                    <Icon name="pencil"/>
-                  </Pressable>
-                  
-                  <Pressable onPress={() => console.log(user.username + ", delete: " + user.email)}>
-                    <Icon name="delete-forever"/>
-                  </Pressable>
+                  {/*                   
+                  {user.editable && (
+                  //Componente a renderizar si cumple condicion de usuario, rol, etc
+                  )} 
+                  */}
 
-                </View> 
-                */}
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+
+                    <Pressable onPress={() => showModalEditUser(user)}>
+                      <View style={{ paddingLeft: 10 }}>
+                        <Icon name="pencil" size={18} color="black" />
+                      </View>
+                    </Pressable>
+
+                    <View style={{ width: 10 }} />
+
+                    <Pressable onPress={() => showModalDeleteUser(user)}>
+                      <View style={{ paddingLeft: 10 }}>
+                        <Icon name="trash" size={18} color="black" />
+                      </View>
+                    </Pressable>
+
+                  </View>
+
+                  
+                </DataTable.Cell>
+                <DataTable.Cell style={styles.cell}>
+                  
+                  {/*                   
+                  {user.editable && (
+                  //Componente a renderizar si cumple condicion de usuario, rol, etc
+                  )} 
+                  */}
+
+                    
                   
                 </DataTable.Cell>
               </DataTable.Row>
@@ -223,7 +319,7 @@ const UserList = () => {
         </DataTable>
       </ScrollView>
     
-
+{/* Modal Creacion de usuario */}
       <Modal
           visible={showAddUsrModal}
           transparent={true}
@@ -234,32 +330,119 @@ const UserList = () => {
               <Text style={styles.loginText}>Agregar Usuario</Text>
               <TextInput
                   style={styles.modalInput}
+                  value={displayName}
+                  placeholder="Display Name"
+                  onChangeText={(text) => setDisplayName(text)}
+                />
+              <TextInput
+                  style={styles.modalInput}
                   value={username}
                   placeholder="Username"
                   onChangeText={(text) => setUsername(text)}
                 />
-              {/* <TextInput style={styles.modalInput} placeholder="Email" /> */}
               <TextInput
                   style={styles.modalInput}
                   value={email}
                   placeholder="Email"
                   onChangeText={(text) => setEmail(text)}
                 />
-                            
+                <TextInput
+                  style={styles.modalInput}
+                  value={password}
+                  placeholder="Password"
+                  onChangeText={(text) => setPassword(text)}
+                />      
               <Button
-                color="#359AF2"
+                mode="contained"
+                buttonColor="#359AF2"
                 title="Agregar"
                 onPress={handleCreateUser}
-              />
+              >Agregar</Button>
               <Button
-                color="#FF0000"
+                mode="contained"
+                buttonColor="#FF0000"
                 title="Cancelar"
                 onPress={handleCloseAddUsrModal}
-              />
+              >Cancelar</Button>
             </Animated.View>           
           </View>
         </Modal>
     
+{/* Modal Edicion de usuario */}
+        <Modal
+          visible={showEditUsrModal}
+          transparent={true}
+          onRequestClose={handleCloseEditUsrModal}
+        >
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>Editar Usuario</Text>
+              <TextInput
+                  style={styles.modalInput}
+                  value={editDisplayName}
+                  placeholder="Display Name"
+                  onChangeText={(text) => setEditDisplayName(text)}
+                />
+              <TextInput
+                  style={styles.modalInput}
+                  value={editUsername}
+                  placeholder="Username"
+                  onChangeText={(text) => setEditUsername(text)}
+                />
+              <TextInput
+                  style={styles.modalInput}
+                  value={editEmail}
+                  placeholder="Email"
+                  onChangeText={(text) => setEditEmail(text)}
+                />
+                <TextInput
+                  style={styles.modalInput}
+                  value={editPassword}
+                  placeholder="Password"
+                  onChangeText={(text) => setEditPassword(text)}
+                />      
+              <Button
+                mode="contained"
+                buttonColor="#359AF2"
+                title="Agregar"
+                onPress={handleEditUser}
+              >Guardar</Button>
+              <Button
+                mode="contained"
+                buttonColor="#FF0000"
+                title="Cancelar"
+                onPress={handleCloseEditUsrModal}
+              >Cancelar</Button>
+            </Animated.View>           
+          </View>
+        </Modal>
+
+{/* Modal Eliminar usuario */}
+<Modal
+          visible={showDeleteUsrModal}
+          transparent={true}
+          onRequestClose={handleCloseDeleteUsrModal}
+        >
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.modalContent]}>
+              <Text style={styles.loginText}>Eliminar Usuario?</Text>
+              <Text>{selectedUser?.username}</Text>
+              <Text>{selectedUser?.email}</Text>
+              <Button
+                mode="contained"
+                buttonColor="#359AF2"
+                title="Agregar"
+                onPress={handleDeleteUser}
+              >Eliminar</Button>
+              <Button
+                mode="contained"
+                buttonColor="#FF0000"
+                title="Cancelar"
+                onPress={handleCloseDeleteUsrModal}
+              >Cancelar</Button>
+            </Animated.View>           
+          </View>
+        </Modal>
     
     </View>
   );

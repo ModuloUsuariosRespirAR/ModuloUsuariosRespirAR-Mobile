@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { login, getUsers, getRoles, createUser } from '../services/user';
+import { login, getUsers, getRoles, createUser, userEdit, userDelete } from '../services/user';
 //import { accessibilityProps } from 'react-native-paper/lib/typescript/src/components/MaterialCommunityIcon';
 
 export const AuthContext = createContext({});
@@ -77,6 +77,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const userModification = async (token, acessToken, userId, username) => {
+    const user = await userEdit(token, acessToken, userId, username);
+    return user;
+  };
+
+  const userDeletation = async (token, acessToken, userId) => {
+    const result = await userDelete(token, acessToken, userId);
+    return result;
+  };
+
+
   const value = {
     loadUsers,
     loadRoles,
@@ -92,7 +103,9 @@ export const AuthProvider = ({ children }) => {
     usersList,
     rolesList,
     createNewUser,
-    userCreated
+    userCreated,
+    userModification,
+    userDeletation,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
