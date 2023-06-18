@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
-import { login, getUsers, getRoles } from '../services/user';
+import { login, getUsers, getRoles, createUser, userEdit, userDelete } from '../services/user';
+//import { accessibilityProps } from 'react-native-paper/lib/typescript/src/components/MaterialCommunityIcon';
 
 export const AuthContext = createContext({});
 
@@ -8,16 +9,26 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState('');
+  const [acessToken, setAccessToken] = useState('');
   const [usersList, setUsersList] = useState([]);
   const [rolesList, setRolesList] = useState([]);
+  const [userCreated, setUserCreated] = useState(null)
 
   const loginUser = async ({ data }) => {
     const userLogged = await login({ data });
     if (userLogged !== null) {
       setUser(userLogged);
       setToken(userLogged['X-Auth-token']);
+      setAccessToken(userLogged['accessToken']);
       setIsLoggedIn(true);
+
+      console.log("usuario Logueado", userLogged)
     }
+
+    console.log(userLogged)
+    console.log("Login authToken", token )
+    console.log("Login  accessToken", acessToken)
+
     setIsLoading(false);
     return userLogged;
   };
@@ -40,6 +51,43 @@ export const AuthProvider = ({ children }) => {
     return setRolesList([]);
   };
 
+  const createNewUser = async (
+    token,
+    acessToken,
+    displayName,
+    username,
+    email,
+    password
+  ) => {
+    const createdUser = await createUser(
+      token,
+      acessToken,
+      displayName,
+      username,
+      email,
+      password
+    );
+
+    console.log("createdUser", createdUser)
+
+    if (createdUser != null) {
+      return createdUser;
+    } else {
+      return null;
+    }
+  };
+
+  const userModification = async (token, acessToken, userId, username) => {
+    const user = await userEdit(token, acessToken, userId, username);
+    return user;
+  };
+
+  const userDeletation = async (token, acessToken, userId) => {
+    const result = await userDelete(token, acessToken, userId);
+    return result;
+  };
+
+
   const value = {
     loadUsers,
     loadRoles,
@@ -50,9 +98,14 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn,
     setUser,
     token,
+    acessToken,
     user,
     usersList,
-    rolesList
+    rolesList,
+    createNewUser,
+    userCreated,
+    userModification,
+    userDeletation,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
