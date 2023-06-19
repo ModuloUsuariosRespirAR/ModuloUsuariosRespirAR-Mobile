@@ -45,13 +45,11 @@ export const getRoles = async ({ token }) => {
 export const createUser = async (
   token,
   acessToken,
-  displayName,
   username,
   email,
   password
 ) => {
   const user = {
-    displayName: displayName,
     username: username,
     email: email,
     password: password
@@ -61,17 +59,58 @@ export const createUser = async (
 
   console.log('Login authToken; accessToken', token + '; ' + acessToken);
 
-  const result = await axios.post(
-    Constants.manifest.extra.backendUrl + '/users/create',
-    {
-      user
-    },
-    {
-      headers: { 'X-Auth-token': token, accesstoken: acessToken }
+  try {
+    const result = await axios.post(
+      Constants.manifest.extra.backendUrl + '/users/create',
+      {
+        user
+      },
+      {
+        headers: { 'X-Auth-token': token, accesstoken: acessToken }
+      }
+    );
+
+    console.log('result', result);
+
+    if (result.access_token) {
+      return result.access_token;
+    } else {
+      return result;
     }
-  );
-  console
-    .log('result', result)
+  } catch (error) {
+    if (error.response) {
+      return {
+        error: {
+          statusCode: error.response.status,
+          message: error.response.data
+        }
+      };
+    } else {
+      return {
+        error: {
+          statusCode: 500,
+          message: 'Keyrock connection failed'
+        }
+      };
+    }
+  }
+};
+
+export const userEdit = async (token, accessToken, userId, username, enabled) => {
+  const user = {
+    username: username,
+    enabled: enabled,
+  };
+  const result = await axios
+    .put(
+      Constants.manifest.extra.backendUrl + "/users/update/" + userId,
+      {
+        user,
+      },
+      {
+        headers: { "X-Auth-token": token, accesstoken: accessToken },
+      }
+    )
     .then((res) => {
       return res.data;
     })
@@ -80,15 +119,15 @@ export const createUser = async (
         return {
           error: {
             statusCode: error.response.status,
-            message: error.response.data
-          }
+            message: error.response.data,
+          },
         };
       } else {
         return {
           error: {
             statusCode: 500,
-            message: 'Keyrock connection failed'
-          }
+            message: "Keyrock connection failed",
+          },
         };
       }
     });

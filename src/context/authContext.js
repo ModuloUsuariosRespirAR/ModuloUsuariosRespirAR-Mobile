@@ -61,23 +61,21 @@ export const AuthProvider = ({ children }) => {
   const createNewUser = async (
     token,
     acessToken,
-    displayName,
     username,
-    email,
-    password
+    email
   ) => {
     const createdUser = await createUser(
       token,
       acessToken,
-      displayName,
       username,
       email,
-      password
+      "1234"
     );
 
     console.log('createdUser', createdUser);
 
     if (createdUser != null) {
+      setUsersList([createdUser.data.user, ...usersList]);
       return createdUser;
     } else {
       return null;
@@ -91,13 +89,23 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const userModification = async (token, accessToken, userId, username) => {
-    const user = await userEdit(token, accessToken, userId, username);
+  const userModification = async (token, accessToken, userId, username, enabled) => {
+    console.log("entro")
+    const user = await userEdit(token, accessToken, userId, username, enabled);
+    console.log("user updated", user)
+    const valueUpdated = username;
+    const usuarios = usersList.map((userParam) =>
+    userParam.id === userId ? { id: userId, username: valueUpdated, email: userParam.email, enabled: enabled } : userParam
+  );
+    setUsersList(usuarios);
     return user;
   };
 
   const userDeletation = async (token, accessToken, userId) => {
     const result = await userDelete(token, accessToken, userId);
+    const usuarios = usersList.filter((user) => user.id !== userId);
+    setUsersList(usuarios);
+
     return result;
   };
 

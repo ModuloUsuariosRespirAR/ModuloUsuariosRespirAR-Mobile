@@ -26,7 +26,8 @@ const UserList = () => {
     acessToken,
     createNewUser,
     userModification,
-    userDeletation
+    userDeletation,
+
   } = useAuth();
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
@@ -37,12 +38,14 @@ const UserList = () => {
   const [showEditUsrModal, setShowEditUsrModal] = useState(false);
   const [showDeleteUsrModal, setShowDeleteUsrModal] = useState(false);
 
+
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = React.useState('');
 
+  const [editIsSwitchOn, setEditIsSwitchOn] = React.useState(true);
   const [editDisplayName, setEditDisplayName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -82,16 +85,23 @@ const UserList = () => {
       const result = await createNewUser(
         token,
         acessToken,
-        displayName,
         username,
-        email,
-        password
+        email
       );
       if (result === null) {
         toast.show({
           description:
             'El usuario ó contraseña ingresado es incorrecto ó no se encuentra registrado'
         });
+      }else if (result.status === 200){
+        console.log("creo entro")
+        toast.show({
+          description:
+            'Usuario Creado'
+        });
+        console.log("creo salio")
+        handleCloseAddUsrModal();
+        return;
       }
     } catch (error) {
       toast.show({
@@ -108,6 +118,7 @@ const UserList = () => {
   const showModalEditUser = (userData) => {
     setSelectedUser(userData);
 
+    setEditIsSwitchOn(userData.enabled)
     setEditDisplayName(userData.displayName);
     setEditUsername(userData.username);
     setEditEmail(userData.email);
@@ -166,7 +177,10 @@ const UserList = () => {
       backgroundColor: '#DCDCDC'
     },
     title: {
-      width: 85
+      width: 50
+    },
+    emailTitle : {
+      width: 100
     },
     cell: {
       width: 85
@@ -178,9 +192,10 @@ const UserList = () => {
       flex: 1
     },
     container: {
-      flex: 1,
-      alignItems: 'center'
-      /* justifyContent: 'center' */
+      paddingTop: 20,
+      marginTop: 40,
+      paddingHorizontal: 10,
+      overflow: 'scroll'
     },
     image: {
       flex: 1,
@@ -226,22 +241,26 @@ const UserList = () => {
       marginVertical: 10,
       borderWidth: 1,
       padding: 10
+    },
+    loginText: {
+      fontWeight: "bold",
     }
   });
 
-  const headers = ['Username', 'Email', 'Habilitado', ''];
-  //const headers = ['Username', 'Email', 'Habilitado', 'Fecha Password'];
+  const headers = ['Username', 'Email', 'Editar', 'Borrar'];
 
   const handleEditUser = () => {
     console.log('Datos del usuario Edit:', selectedUser);
     // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
-    userModification(token, acessToken, selectedUser.id, editUsername);
+    userModification(token, acessToken, selectedUser.id, editUsername, editIsSwitchOn);
+    handleCloseEditUsrModal()
   };
 
   const handleDeleteUser = () => {
     console.log('Datos del usuario Delete:', selectedUser);
     // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
     userDeletation(token, acessToken, selectedUser.id);
+    handleCloseDeleteUsrModal()
   };
 
   return (
@@ -250,16 +269,18 @@ const UserList = () => {
         mode="contained"
         title="Agregar Usuario"
         buttonColor="#00CEFE"
+        icon="plus"
         onPress={showModalAddUser}
       >
         Agregar Usuario
       </Button>
       <ScrollView horizontal>
-        <DataTable>
+        <DataTable style={[{ marginTop: 10 }]}>
           <DataTable.Header style={styles.tableHeader}>
             {React.Children.toArray(
               headers.map((header) => (
-                <DataTable.Title style={styles.title}>{header}</DataTable.Title>
+                <DataTable.Title style={header === "Email" ? styles.emailTitle : styles.title}>
+                  {header}</DataTable.Title>
               ))
             )}
           </DataTable.Header>
@@ -272,42 +293,36 @@ const UserList = () => {
                 <DataTable.Cell style={styles.cell}>
                   <Text>{user.email}</Text>
                 </DataTable.Cell>
-                <DataTable.Cell style={styles.switch}>
-                  <Switch
-                    color={'blue'}
-                    value={user.enabled}
-                    onValueChange={onToggleSwitch}
-                  />
-                </DataTable.Cell>
-                <DataTable.Cell style={styles.cell}>
+                <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
                   {/*                   
                   {user.editable && (
                   //Componente a renderizar si cumple condicion de usuario, rol, etc
                   )} 
                   */}
 
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  
                     <Pressable onPress={() => showModalEditUser(user)}>
                       <View style={{ paddingLeft: 10 }}>
                         <Icon name="pencil" size={18} color="black" />
                       </View>
                     </Pressable>
 
-                    <View style={{ width: 10 }} />
+                    
 
-                    <Pressable onPress={() => showModalDeleteUser(user)}>
-                      <View style={{ paddingLeft: 10 }}>
-                        <Icon name="trash" size={18} color="black" />
-                      </View>
-                    </Pressable>
-                  </View>
+                    
+                  
                 </DataTable.Cell>
-                <DataTable.Cell style={styles.cell}>
+                <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
                   {/*                   
                   {user.editable && (
                   //Componente a renderizar si cumple condicion de usuario, rol, etc
                   )} 
                   */}
+                  <Pressable onPress={() => showModalDeleteUser(user)}>
+                      <View >
+                        <Icon name="trash" size={18} color="black" />
+                      </View>
+                    </Pressable>
                 </DataTable.Cell>
               </DataTable.Row>
             ))
@@ -324,30 +339,21 @@ const UserList = () => {
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent]}>
             <Text style={styles.loginText}>Agregar Usuario</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={displayName}
-              placeholder="Display Name"
-              onChangeText={(text) => setDisplayName(text)}
-            />
+            <Text>User Name</Text>
             <TextInput
               style={styles.modalInput}
               value={username}
               placeholder="Username"
               onChangeText={(text) => setUsername(text)}
             />
+            <Text>Email</Text>
             <TextInput
               style={styles.modalInput}
               value={email}
               placeholder="Email"
               onChangeText={(text) => setEmail(text)}
             />
-            <TextInput
-              style={styles.modalInput}
-              value={password}
-              placeholder="Password"
-              onChangeText={(text) => setPassword(text)}
-            />
+
             <Button
               mode="contained"
               buttonColor="#359AF2"
@@ -377,36 +383,37 @@ const UserList = () => {
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent]}>
             <Text style={styles.loginText}>Editar Usuario</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={editDisplayName}
-              placeholder="Display Name"
-              onChangeText={(text) => setEditDisplayName(text)}
-            />
+            <Text>User Name</Text>
             <TextInput
               style={styles.modalInput}
               value={editUsername}
               placeholder="Username"
               onChangeText={(text) => setEditUsername(text)}
             />
+            <Text>Email</Text>
             <TextInput
               style={styles.modalInput}
               value={editEmail}
               placeholder="Email"
               onChangeText={(text) => setEditEmail(text)}
+              editable={false}
             />
-            <TextInput
-              style={styles.modalInput}
-              value={editPassword}
-              placeholder="Password"
-              onChangeText={(text) => setEditPassword(text)}
+
+            <Text>Habilitado</Text>
+            <Switch
+              color={'blue'}
+              value={editIsSwitchOn}
+              onValueChange={setEditIsSwitchOn}
             />
+
+            
             <Button
               mode="contained"
               buttonColor="#359AF2"
               title="Agregar"
               onPress={handleEditUser}
             >
+
               Guardar
             </Button>
             <Button
