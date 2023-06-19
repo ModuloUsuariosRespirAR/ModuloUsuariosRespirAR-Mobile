@@ -14,8 +14,10 @@ import { Button, List } from 'react-native-paper';
 
 const RoleList = () => {
   const toast = useToast();
-  const { loadRoles, rolesList, roleModification, removeRole } = useAuth();
+  const { loadRoles, rolesList, roleModification, removeRole, createRole } =
+    useAuth();
   const [selectedRole, setSelectedRole] = useState({});
+  const [newRole, setNewRole] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showModal, setShowModal] = useState({
     edit: false,
@@ -71,8 +73,21 @@ const RoleList = () => {
     }
   });
 
-  const handleAddRole = () => {
-    console.log('add role');
+  const handleAddRole = async () => {
+    if (newRole === '')
+      return toast.show({
+        description: 'El nombre del Rol no puede ser vacío'
+      });
+    const response = await createRole(newRole);
+    if (response.status === 200) {
+      closeModal('add');
+      return toast.show({
+        description: 'Rol creado exitosamente'
+      });
+    }
+    toast.show({
+      description: response.error.message
+    });
   };
 
   const handleEditRole = async () => {
@@ -108,7 +123,7 @@ const RoleList = () => {
   return (
     <View style={styles.container}>
       <Button
-        onPress={handleAddRole}
+        onPress={() => openModal('add')}
         icon="plus"
         mode="contained"
         buttonColor="#00CEFE"
@@ -143,6 +158,40 @@ const RoleList = () => {
           />
         ))
       )}
+      {/* Modal Creacion de Rol */}
+      <Modal
+        visible={showModal.add}
+        transparent={true}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <Animated.View style={[styles.modalContent]}>
+            <Text style={styles.loginText}>Agregar Rol</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newRole}
+              placeholder="Nombre del Rol"
+              onChangeText={(text) => setNewRole(text)}
+            />
+            <Button
+              mode="contained"
+              buttonColor="#359AF2"
+              title="Agregar"
+              onPress={handleAddRole}
+            >
+              Agregar
+            </Button>
+            <Button
+              mode="contained"
+              buttonColor="#FF0000"
+              title="Cancelar"
+              onPress={() => closeModal('add')}
+            >
+              Cancelar
+            </Button>
+          </Animated.View>
+        </View>
+      </Modal>
       {/* Modal Edicion de Rol */}
       <Modal
         visible={showModal.edit}

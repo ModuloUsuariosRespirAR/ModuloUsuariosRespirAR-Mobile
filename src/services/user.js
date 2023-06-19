@@ -201,3 +201,39 @@ export const deleteRole = async (token, accessToken, roleID) => {
     return result;
   }
 };
+
+export const addRole = async (token, accessToken, role) => {
+  const result = await axios
+    .post(
+      Constants.manifest.extra.backendUrl + '/roles/create/',
+      { rolName: role },
+      {
+        headers: { 'X-Auth-token': token, accessToken: accessToken }
+      }
+    )
+    .then((res) => {
+      return res;
+    })
+    .catch((error) => {
+      if (error.response) {
+        return {
+          error: {
+            statusCode: error.response.status,
+            message: 'Hubo un error, intente nuevamente.'
+          }
+        };
+      } else {
+        return {
+          error: {
+            statusCode: 500,
+            message: 'Keyrock connection failed'
+          }
+        };
+      }
+    });
+  if (result.access_token) {
+    return result.access_token;
+  } else {
+    return result;
+  }
+};

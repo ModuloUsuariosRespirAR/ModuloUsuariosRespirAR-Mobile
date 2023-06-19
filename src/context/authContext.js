@@ -7,9 +7,9 @@ import {
   userEdit,
   userDelete,
   editRole,
-  deleteRole
+  deleteRole,
+  addRole
 } from '../services/user';
-//import { accessibilityProps } from 'react-native-paper/lib/typescript/src/components/MaterialCommunityIcon';
 
 export const AuthContext = createContext({});
 
@@ -44,7 +44,6 @@ export const AuthProvider = ({ children }) => {
 
   const loadUsers = async () => {
     const usersList = await getUsers({ token });
-    console.log('🚀 ~ file: authContext.js:26 ~ usersList:', usersList);
     if (usersList !== null) {
       return setUsersList(usersList.users);
     }
@@ -53,7 +52,6 @@ export const AuthProvider = ({ children }) => {
 
   const loadRoles = async () => {
     const rolesList = await getRoles({ token });
-    console.log('🚀 ~ file: authContext.js:26 ~ usersList:', rolesList);
     if (rolesList !== null) {
       return setRolesList(rolesList.roles);
     }
@@ -126,6 +124,20 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const createRole = async (role) => {
+    const result = await addRole(token, accessToken, role);
+    if (result.status === 200) {
+      const newRoleAdded = {
+        id: result.data.role.id,
+        name: result.data.role.name
+      };
+
+      setRolesList([newRoleAdded, ...rolesList]);
+      return result;
+    }
+    return result;
+  };
+
   const value = {
     loadUsers,
     loadRoles,
@@ -146,7 +158,8 @@ export const AuthProvider = ({ children }) => {
     userDeletation,
     logOut,
     roleModification,
-    removeRole
+    removeRole,
+    createRole
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
