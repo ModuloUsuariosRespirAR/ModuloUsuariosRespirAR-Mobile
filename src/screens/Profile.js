@@ -1,62 +1,86 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from 'native-base';
-import React, { useState } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import React, { Children } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { Header } from '../layout/Header';
 import { useAuth } from '../context/authContext';
 
 const Profile = () => {
-  const navigation = useNavigation();
-  const { user } = useAuth();
+  const {
+    user: { user },
+    logOut
+  } = useAuth();
+
+  const styles = StyleSheet.create({
+    container: {
+      paddingTop: 20,
+      paddingHorizontal: 10,
+      overflow: 'scroll',
+      flex: 1,
+      justifyContent: 'center',
+      alignContent: 'center'
+    },
+    icon: {
+      alignItems: 'center'
+    }
+  });
 
   return (
     <View style={styles.container}>
-      {/* <Header title="Perfil"></Header> */}
-      <View style={styles.whiteSheet} />
-      <SafeAreaView style={styles.form}>
-        <TouchableOpacity
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 10
-          }}
-        >
-          {!user.user.image ? (
-            <MaterialCommunityIcons
-              name="camera-plus"
-              color={'#717171'}
-              size={100}
-            />
-          ) : (
-            <Image
-              source={{ uri: user.user.image }}
-              style={{ width: '50%', height: '50%', borderRadius: 15 }}
-            />
-          )}
-        </TouchableOpacity>
+      {!user.image ? (
+        <View style={styles.icon}>
+          <MaterialCommunityIcons name="account" color={'#717171'} size={100} />
+        </View>
+      ) : (
+        <Image
+          source={{ uri: user.image }}
+          style={{ width: '50%', height: '50%', borderRadius: 15 }}
+        />
+      )}
+
+      <Text
+        style={{
+          color: '#000000',
+          fontSize: 18,
+          marginBottom: 20,
+          textAlign: 'center'
+        }}
+      >
+        Nombre de usuario: {user.username}
+      </Text>
+      <Text
+        style={{
+          color: '#000000',
+          fontSize: 18,
+          marginBottom: 20,
+          textAlign: 'center'
+        }}
+      >
+        Email: {user.email}
+      </Text>
+      {user.roles.length > 0 && (
         <Text
           style={{
-            fontWeight: 'bold',
             color: '#000000',
             fontSize: 18,
-            marginBottom: 20
+            marginBottom: 20,
+            textAlign: 'center'
           }}
         >
-          {user.user.username}
+          {Children.toArray(user.roles).map((rol) => (
+            <Text>{rol} |</Text>
+          ))}
         </Text>
-      </SafeAreaView>
-      <StatusBar barStyle="light-content" />
+      )}
+      <Button
+        mode="contained"
+        onPress={() => logOut()}
+        icon={'exit-to-app'}
+        buttonColor="#359AF2"
+      >
+        Cerrar sesión
+      </Button>
     </View>
   );
 };
