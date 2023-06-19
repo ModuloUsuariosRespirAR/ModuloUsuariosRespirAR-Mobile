@@ -16,7 +16,7 @@ import { SelectList } from 'react-native-dropdown-select-list';
 import { useAuth } from '../context/authContext';
 
 const Home = () => {
-  const { user } = useAuth();
+  const { user, usersList, rolesList } = useAuth();
   const [userCount, setUserCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -151,7 +151,8 @@ const Home = () => {
         <Text style={styles.userNameText}>
           ¡Bienvenido {user.user.username}!
         </Text>
-        <View style={styles.container}>
+
+       {/*  <View style={styles.container}>
           <HStack m={4} spacing={6}>
             <Button
               title="Agregar Usuario"
@@ -184,17 +185,15 @@ const Home = () => {
               onPress={handleDeleteUser}
             />
           </HStack>
-        </View>
+        </View> */}
 
         <View style={styles.notificationsContainer}>
+
           <View style={styles.textContainer}>
-            <Text>Usuarios con autorizacion pendiente: {userCount}</Text>
+            <Text>Cantidad de usuarios: {usersList.length}</Text>
           </View>
           <View style={styles.textContainer}>
-            <Text>Cantidad de usuarios: {userCount}</Text>
-          </View>
-          <View style={styles.textContainer}>
-            <Text>Cantidad de roles: {userCount}</Text>
+            <Text>Cantidad de roles: {rolesList.length}</Text>
           </View>
         </View>
 
@@ -216,7 +215,7 @@ const Home = () => {
           </View>
         </Modal> */}
 
-        <Modal
+{/*         <Modal
           visible={showAddUsrModal}
           transparent={true}
           onRequestClose={handleCloseAddUsrModal}
@@ -273,7 +272,7 @@ const Home = () => {
               />
             </Animated.View>
           </View>
-        </Modal>
+        </Modal> */}
 
         {/*       MODALS PARA ROLES
   <Modal visible={showModal} transparent={true} onRequestClose={handleCloseModal}>
