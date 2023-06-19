@@ -1,5 +1,5 @@
 import { useAuth } from '../context/authContext';
-import { ScrollView } from 'native-base';
+import { useToast } from 'native-base';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -13,7 +13,8 @@ import {
 import { Button, List } from 'react-native-paper';
 
 const RoleList = () => {
-  const { loadRoles, rolesList } = useAuth();
+  const toast = useToast();
+  const { loadRoles, rolesList, roleModification, removeRole } = useAuth();
   const [selectedRole, setSelectedRole] = useState({});
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showModal, setShowModal] = useState({
@@ -74,12 +75,34 @@ const RoleList = () => {
     console.log('add role');
   };
 
-  const handleEditRole = () => {
-    console.log(selectedRole);
+  const handleEditRole = async () => {
+    if (selectedRole.name === '')
+      return toast.show({
+        description: 'El nombre del Rol no puede ser vacío'
+      });
+    const response = await roleModification(selectedRole);
+    if (response.status === 200) {
+      closeModal('edit');
+      return toast.show({
+        description: 'Rol actualizado'
+      });
+    }
+    toast.show({
+      description: response.error.message
+    });
   };
 
-  const handleDeleteRole = () => {
-    console.log(selectedRole);
+  const handleDeleteRole = async () => {
+    const response = await removeRole(selectedRole.id);
+    if (response.status === 200) {
+      closeModal('delete');
+      return toast.show({
+        description: 'Rol eliminado'
+      });
+    }
+    toast.show({
+      description: response.error.message
+    });
   };
 
   return (
@@ -128,9 +151,7 @@ const RoleList = () => {
       >
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent]}>
-            <Text style={styles.loginText}>
-              Editar Rol: {selectedRole.name}
-            </Text>
+            <Text style={styles.loginText}>Editar Rol</Text>
             <TextInput
               style={styles.modalInput}
               value={selectedRole.name}
@@ -143,7 +164,6 @@ const RoleList = () => {
             <Button
               mode="contained"
               buttonColor="#359AF2"
-              title="Agregar"
               onPress={handleEditRole}
             >
               Guardar
