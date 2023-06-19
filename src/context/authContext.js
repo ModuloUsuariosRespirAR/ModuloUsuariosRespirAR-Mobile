@@ -5,9 +5,11 @@ import {
   getRoles,
   createUser,
   userEdit,
-  userDelete
+  userDelete,
+  editRole,
+  deleteRole,
+  addRole
 } from '../services/user';
-//import { accessibilityProps } from 'react-native-paper/lib/typescript/src/components/MaterialCommunityIcon';
 
 export const AuthContext = createContext({});
 
@@ -16,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState('');
-  const [acessToken, setAccessToken] = useState('');
+  const [accessToken, setAccessToken] = useState('');
   const [usersList, setUsersList] = useState([]);
   const [rolesList, setRolesList] = useState([]);
   const [userCreated, setUserCreated] = useState(null);
@@ -34,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
     console.log(userLogged);
     console.log('Login authToken', token);
-    console.log('Login  accessToken', acessToken);
+    console.log('Login  accessToken', accessToken);
 
     setIsLoading(false);
     return userLogged;
@@ -42,7 +44,6 @@ export const AuthProvider = ({ children }) => {
 
   const loadUsers = async () => {
     const usersList = await getUsers({ token });
-    console.log('🚀 ~ file: authContext.js:26 ~ usersList:', usersList);
     if (usersList !== null) {
       return setUsersList(usersList.users);
     }
@@ -51,7 +52,6 @@ export const AuthProvider = ({ children }) => {
 
   const loadRoles = async () => {
     const rolesList = await getRoles({ token });
-    console.log('🚀 ~ file: authContext.js:26 ~ usersList:', rolesList);
     if (rolesList !== null) {
       return setRolesList(rolesList.roles);
     }
@@ -91,13 +91,50 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const userModification = async (token, acessToken, userId, username) => {
-    const user = await userEdit(token, acessToken, userId, username);
+  const userModification = async (token, accessToken, userId, username) => {
+    const user = await userEdit(token, accessToken, userId, username);
     return user;
   };
 
-  const userDeletation = async (token, acessToken, userId) => {
-    const result = await userDelete(token, acessToken, userId);
+  const userDeletation = async (token, accessToken, userId) => {
+    const result = await userDelete(token, accessToken, userId);
+    return result;
+  };
+
+  const roleModification = async (role) => {
+    const result = await editRole(token, accessToken, role);
+    if (result.status === 200) {
+      const valueUpdated = result.data.values_updated.name;
+      const roles = rolesList.map((rol) =>
+        rol.id === role.id ? { id: rol.id, name: valueUpdated } : rol
+      );
+      setRolesList(roles);
+      return result;
+    }
+    return result;
+  };
+
+  const removeRole = async (roleID) => {
+    const result = await deleteRole(token, accessToken, roleID);
+    if (result.status === 200) {
+      const roles = rolesList.filter((rol) => rol.id !== roleID);
+      setRolesList(roles);
+      return result;
+    }
+    return result;
+  };
+
+  const createRole = async (role) => {
+    const result = await addRole(token, accessToken, role);
+    if (result.status === 200) {
+      const newRoleAdded = {
+        id: result.data.role.id,
+        name: result.data.role.name
+      };
+
+      setRolesList([newRoleAdded, ...rolesList]);
+      return result;
+    }
     return result;
   };
 
@@ -111,7 +148,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn,
     setUser,
     token,
-    acessToken,
+    acessToken: accessToken,
     user,
     usersList,
     rolesList,
@@ -119,7 +156,10 @@ export const AuthProvider = ({ children }) => {
     userCreated,
     userModification,
     userDeletation,
-    logOut
+    logOut,
+    roleModification,
+    removeRole,
+    createRole
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
