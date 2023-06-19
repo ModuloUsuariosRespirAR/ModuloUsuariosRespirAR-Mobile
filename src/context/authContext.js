@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState } from 'react';
-import { login, getUsers, getRoles, createUser, userEdit, userDelete } from '../services/user';
+import {
+  login,
+  getUsers,
+  getRoles,
+  createUser,
+  userEdit,
+  userDelete
+} from '../services/user';
 //import { accessibilityProps } from 'react-native-paper/lib/typescript/src/components/MaterialCommunityIcon';
 
 export const AuthContext = createContext({});
@@ -12,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [acessToken, setAccessToken] = useState('');
   const [usersList, setUsersList] = useState([]);
   const [rolesList, setRolesList] = useState([]);
-  const [userCreated, setUserCreated] = useState(null)
+  const [userCreated, setUserCreated] = useState(null);
 
   const loginUser = async ({ data }) => {
     const userLogged = await login({ data });
@@ -22,12 +29,12 @@ export const AuthProvider = ({ children }) => {
       setAccessToken(userLogged['accessToken']);
       setIsLoggedIn(true);
 
-      console.log("usuario Logueado", userLogged)
+      console.log('usuario Logueado', userLogged);
     }
 
-    console.log(userLogged)
-    console.log("Login authToken", token )
-    console.log("Login  accessToken", acessToken)
+    console.log(userLogged);
+    console.log('Login authToken', token);
+    console.log('Login  accessToken', acessToken);
 
     setIsLoading(false);
     return userLogged;
@@ -68,13 +75,20 @@ export const AuthProvider = ({ children }) => {
       password
     );
 
-    console.log("createdUser", createdUser)
+    console.log('createdUser', createdUser);
 
     if (createdUser != null) {
       return createdUser;
     } else {
       return null;
     }
+  };
+
+  const logOut = () => {
+    setUser([]);
+    setToken('');
+    setAccessToken('');
+    setIsLoggedIn(false);
   };
 
   const userModification = async (token, acessToken, userId, username) => {
@@ -86,7 +100,6 @@ export const AuthProvider = ({ children }) => {
     const result = await userDelete(token, acessToken, userId);
     return result;
   };
-
 
   const value = {
     loadUsers,
@@ -106,6 +119,7 @@ export const AuthProvider = ({ children }) => {
     userCreated,
     userModification,
     userDeletation,
+    logOut
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
