@@ -7,7 +7,6 @@ export const login = async ({ data }) => {
       Constants.manifest.extra.backendUrl + '/login',
       data
     );
-    console.log(response.data);
     return response.data;
   } catch (error) {
     throw new error();
@@ -45,33 +44,72 @@ export const getRoles = async ({ token }) => {
 export const createUser = async (
   token,
   acessToken,
-  displayName,
   username,
   email,
   password
 ) => {
   const user = {
-    displayName: displayName,
     username: username,
     email: email,
     password: password
   };
 
-  console.log('user data', user);
+  try {
+    const result = await axios.post(
+      Constants.manifest.extra.backendUrl + '/users/create',
+      {
+        user
+      },
+      {
+        headers: { 'X-Auth-token': token, accesstoken: acessToken }
+      }
+    );
 
-  console.log('Login authToken; accessToken', token + '; ' + acessToken);
-
-  const result = await axios.post(
-    Constants.manifest.extra.backendUrl + '/users/create',
-    {
-      user
-    },
-    {
-      headers: { 'X-Auth-token': token, accesstoken: acessToken }
+    if (result.access_token) {
+      return result.access_token;
+    } else {
+      return result;
     }
-  );
-  console
-    .log('result', result)
+  } catch (error) {
+    if (error.response) {
+      return {
+        error: {
+          statusCode: error.response.status,
+          message: error.response.data
+        }
+      };
+    } else {
+      return {
+        error: {
+          statusCode: 500,
+          message: 'Keyrock connection failed'
+        }
+      };
+    }
+  }
+};
+
+export const userEdit = async (
+  token,
+  accessToken,
+  userId,
+  username,
+  enabled
+) => {
+  const user = {
+    username: username,
+    enabled: enabled
+  };
+  const result = await axios
+    .put(
+      Constants.manifest.extra.backendUrl + '/users/update/' + userId,
+      {
+        user
+      },
+      {
+        headers: { 'X-Auth-token': token, accesstoken: accessToken }
+      }
+    )
     .then((res) => {
       return res.data;
     })
@@ -236,4 +274,73 @@ export const addRole = async (token, accessToken, role) => {
   } else {
     return result;
   }
+};
+
+export const assignRol = async (token, accessToken, userId, rolId) => {
+  const result = await axios
+    .put(
+      Constants.manifest.extra.backendUrl + '/roles/assign',
+      { rolId: rolId, userId: userId },
+      {
+        headers: {
+          'X-Auth-token': token,
+          'Content-Type': 'application/json',
+          accessToken: accessToken
+        }
+      }
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      if (error.response) {
+        return {
+          error: {
+            statusCode: error.response.status,
+            message: error.response.data.error.message
+          }
+        };
+      } else {
+        return {
+          error: {
+            statusCode: 500,
+            message: 'Keyrock connection failed'
+          }
+        };
+      }
+    });
+  return result;
+};
+
+export const getUserRoles = async (userId, token) => {
+  const result = await axios
+    .get(
+      Constants.manifest.extra.backendUrl + '/users/user/' + userId + '/roles',
+      {
+        headers: {
+          'X-Auth-token': token
+        }
+      }
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      if (error.response) {
+        return {
+          error: {
+            statusCode: error.response.status,
+            message: error.response.data.error.message
+          }
+        };
+      } else {
+        return {
+          error: {
+            statusCode: 500,
+            message: 'Keyrock connection failed'
+          }
+        };
+      }
+    });
+  return result;
 };

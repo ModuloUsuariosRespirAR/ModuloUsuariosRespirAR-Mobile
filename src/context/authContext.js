@@ -8,7 +8,9 @@ import {
   userDelete,
   editRole,
   deleteRole,
-  addRole
+  addRole,
+  getUserRoles,
+  assignRol
 } from '../services/user';
 
 export const AuthContext = createContext({});
@@ -23,6 +25,8 @@ export const AuthProvider = ({ children }) => {
   const [rolesList, setRolesList] = useState([]);
   const [userCreated, setUserCreated] = useState(null);
 
+  const PASS_DEFAULT = '1234';
+
   const loginUser = async ({ data }) => {
     const userLogged = await login({ data });
     if (userLogged !== null) {
@@ -30,14 +34,7 @@ export const AuthProvider = ({ children }) => {
       setToken(userLogged['X-Auth-token']);
       setAccessToken(userLogged['accessToken']);
       setIsLoggedIn(true);
-
-      console.log('usuario Logueado', userLogged);
     }
-
-    console.log(userLogged);
-    console.log('Login authToken', token);
-    console.log('Login  accessToken', accessToken);
-
     setIsLoading(false);
     return userLogged;
   };
@@ -58,26 +55,20 @@ export const AuthProvider = ({ children }) => {
     return setRolesList([]);
   };
 
-  const createNewUser = async (
-    token,
-    acessToken,
-    displayName,
-    username,
-    email,
-    password
-  ) => {
+  const createNewUser = async (token, acessToken, username, email, roleId) => {
     const createdUser = await createUser(
       token,
       acessToken,
-      displayName,
       username,
       email,
-      password
+      PASS_DEFAULT
     );
 
-    console.log('createdUser', createdUser);
-
     if (createdUser != null) {
+      setUsersList([createdUser.data.user, ...usersList]);
+
+      assignRol(token, acessToken, createdUser.data.user.id, roleId);
+
       return createdUser;
     } else {
       return null;
@@ -91,14 +82,40 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const userModification = async (token, accessToken, userId, username) => {
-    const user = await userEdit(token, accessToken, userId, username);
+  const userModification = async (
+    token,
+    accessToken,
+    userId,
+    username,
+    enabled
+  ) => {
+    const user = await userEdit(token, accessToken, userId, username, enabled);
+    const valueUpdated = username;
+    const usuarios = usersList.map((userParam) =>
+      userParam.id === userId
+        ? {
+            id: userId,
+            username: valueUpdated,
+            email: userParam.email,
+            enabled: enabled
+          }
+        : userParam
+    );
+    setUsersList(usuarios);
     return user;
   };
 
   const userDeletation = async (token, accessToken, userId) => {
     const result = await userDelete(token, accessToken, userId);
+    const usuarios = usersList.filter((user) => user.id !== userId);
+    setUsersList(usuarios);
+
     return result;
+  };
+
+  const userRoles = async (userId, token) => {
+    const userRoles = await getUserRoles(userId, token);
+    return userRoles;
   };
 
   const roleModification = async (role) => {
@@ -159,7 +176,8 @@ export const AuthProvider = ({ children }) => {
     logOut,
     roleModification,
     removeRole,
-    createRole
+    createRole,
+    userRoles
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

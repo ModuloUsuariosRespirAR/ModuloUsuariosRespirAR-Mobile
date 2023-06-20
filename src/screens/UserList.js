@@ -4,31 +4,33 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Modal,
   Animated,
   TextInput,
   Pressable
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+import { assignRol, getUserRoles } from '../services/user';
 
 import { DataTable, Switch, Button } from 'react-native-paper';
 
-import { SelectList } from 'react-native-dropdown-select-list';
-
 const UserList = () => {
-  const [isSwitchOn, setIsSwitchOn] = React.useState(true);
   const {
     loadUsers,
     usersList,
+    rolesList,
     token,
     acessToken,
     createNewUser,
     userModification,
-    userDeletation
+    userDeletation,
+    user: {
+      user: { roles }
+    }
   } = useAuth();
-  const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -37,20 +39,50 @@ const UserList = () => {
   const [showEditUsrModal, setShowEditUsrModal] = useState(false);
   const [showDeleteUsrModal, setShowDeleteUsrModal] = useState(false);
 
-  const [displayName, setDisplayName] = useState('');
+  const [createdUser, setCreatedUser] = useState(null);
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = React.useState('');
 
-  const [editDisplayName, setEditDisplayName] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [userRoles, setUserRoles] = useState([]);
+  const [userRolesPlano, setUserRolesPlano] = useState('');
+
+  const [editIsSwitchOn, setEditIsSwitchOn] = React.useState(true);
   const [editUsername, setEditUsername] = useState('');
   const [editEmail, setEditEmail] = useState('');
-  const [editPassword, setEditPassword] = useState('');
 
   const toast = useToast();
 
   useEffect(() => loadUsers(), []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      // Llamar a la función asincrónica getUserRoles aquí
+      getUserRoles(selectedUser.id, token)
+        .then((rolesUsuario) => {
+          setUserRoles(rolesUsuario);
+          const roleNames = rolesUsuario.role_user_assignments.map(
+            (roleAssignment) => {
+              const role = rolesList.find(
+                (role) => role.id === roleAssignment.role_id
+              );
+              return role ? role.name : 'Rol no encontrado';
+            }
+          );
+          // Concatenar los nombres de los roles separados por coma
+          const concatenatedRoles = roleNames.join(', ');
+          setUserRolesPlano(concatenatedRoles);
+        })
+        .catch((error) => {
+          toast.show({
+            description: 'Error al obtener los roles del usuario:',
+            error
+          });
+          setUserRolesPlano('');
+        });
+    }
+  }, [selectedUser, token]);
 
   const showModalAddUser = () => {
     setShowAddUsrModal(true);
@@ -82,39 +114,36 @@ const UserList = () => {
       const result = await createNewUser(
         token,
         acessToken,
-        displayName,
         username,
         email,
-        password
+        selectedRole
       );
       if (result === null) {
         toast.show({
           description:
             'El usuario ó contraseña ingresado es incorrecto ó no se encuentra registrado'
         });
+      } else if (result.status === 200) {
+        toast.show({
+          description: 'Usuario Creado'
+        });
+        setCreatedUser(result.data.user);
       }
     } catch (error) {
       toast.show({
         description: 'Hubo un error, intente nuevamente'
       });
-      console.log('error', error);
     }
 
     //Actualizar lista de usuarios funcion
-
     handleCloseAddUsrModal();
   };
 
   const showModalEditUser = (userData) => {
     setSelectedUser(userData);
-
-    setEditDisplayName(userData.displayName);
+    setEditIsSwitchOn(userData.enabled);
     setEditUsername(userData.username);
     setEditEmail(userData.email);
-    setEditPassword(userData.password);
-
-    console.log(userData);
-
     setShowEditUsrModal(true);
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -135,9 +164,6 @@ const UserList = () => {
 
   const showModalDeleteUser = (userData) => {
     setSelectedUser(userData);
-
-    console.log(userData);
-
     setShowDeleteUsrModal(true);
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -166,7 +192,10 @@ const UserList = () => {
       backgroundColor: '#DCDCDC'
     },
     title: {
-      width: 85
+      width: 50
+    },
+    emailTitle: {
+      width: 100
     },
     cell: {
       width: 85
@@ -178,9 +207,10 @@ const UserList = () => {
       flex: 1
     },
     container: {
-      flex: 1,
-      alignItems: 'center'
-      /* justifyContent: 'center' */
+      paddingTop: 20,
+      marginTop: 40,
+      paddingHorizontal: 10,
+      overflow: 'scroll'
     },
     image: {
       flex: 1,
@@ -226,42 +256,65 @@ const UserList = () => {
       marginVertical: 10,
       borderWidth: 1,
       padding: 10
+    },
+    loginText: {
+      fontWeight: 'bold'
     }
   });
 
-  const headers = ['Username', 'Email', 'Habilitado', ''];
-  //const headers = ['Username', 'Email', 'Habilitado', 'Fecha Password'];
-
   const handleEditUser = () => {
-    console.log('Datos del usuario Edit:', selectedUser);
-    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
-    userModification(token, acessToken, selectedUser.id, editUsername);
+    userModification(
+      token,
+      acessToken,
+      selectedUser.id,
+      editUsername,
+      editIsSwitchOn
+    );
+    selectedRole !== '' &&
+      assignRol(token, acessToken, selectedUser.id, selectedRole);
+    handleCloseEditUsrModal();
+    toast.show({
+      description: 'Usuario actualizado'
+    });
   };
 
   const handleDeleteUser = () => {
-    console.log('Datos del usuario Delete:', selectedUser);
-    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
     userDeletation(token, acessToken, selectedUser.id);
+    handleCloseDeleteUsrModal();
+    toast.show({
+      description: 'Usuario eliminado'
+    });
   };
 
   return (
     <View style={styles.container}>
-      <Button
-        mode="contained"
-        title="Agregar Usuario"
-        buttonColor="#00CEFE"
-        onPress={showModalAddUser}
-      >
-        Agregar Usuario
-      </Button>
+      {roles.length === 0 && (
+        <Button
+          mode="contained"
+          title="Agregar Usuario"
+          buttonColor="#00CEFE"
+          icon="plus"
+          onPress={showModalAddUser}
+        >
+          Agregar Usuario
+        </Button>
+      )}
       <ScrollView horizontal>
-        <DataTable>
+        <DataTable style={[{ marginTop: 10 }]}>
           <DataTable.Header style={styles.tableHeader}>
-            {React.Children.toArray(
+            {/* {React.Children.toArray(
               headers.map((header) => (
-                <DataTable.Title style={styles.title}>{header}</DataTable.Title>
+                <DataTable.Title
+                  style={header === 'Email' ? styles.emailTitle : styles.title}
+                >
+                  {header}
+                </DataTable.Title>
               ))
-            )}
+            )} */}
+            <DataTable.Title style={styles.title}>Username</DataTable.Title>
+            <DataTable.Title style={styles.emailTitle}>Email</DataTable.Title>
+            <DataTable.Title style={styles.title}></DataTable.Title>
+            <DataTable.Title style={styles.title}></DataTable.Title>
           </DataTable.Header>
           {React.Children.toArray(
             usersList.map((user) => (
@@ -272,43 +325,49 @@ const UserList = () => {
                 <DataTable.Cell style={styles.cell}>
                   <Text>{user.email}</Text>
                 </DataTable.Cell>
-                <DataTable.Cell style={styles.switch}>
-                  <Switch
-                    color={'blue'}
-                    value={user.enabled}
-                    onValueChange={onToggleSwitch}
-                  />
-                </DataTable.Cell>
-                <DataTable.Cell style={styles.cell}>
-                  {/*                   
-                  {user.editable && (
-                  //Componente a renderizar si cumple condicion de usuario, rol, etc
-                  )} 
-                  */}
-
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {roles.find((rol) => rol.name == 'Modify') ||
+                roles.length === 0 ? (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  >
                     <Pressable onPress={() => showModalEditUser(user)}>
-                      <View style={{ paddingLeft: 10 }}>
+                      <View>
                         <Icon name="pencil" size={18} color="black" />
                       </View>
                     </Pressable>
-
-                    <View style={{ width: 10 }} />
-
+                  </DataTable.Cell>
+                ) : (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  ></DataTable.Cell>
+                )}
+                {roles.length === 0 ? (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  >
                     <Pressable onPress={() => showModalDeleteUser(user)}>
-                      <View style={{ paddingLeft: 10 }}>
+                      <View>
                         <Icon name="trash" size={18} color="black" />
                       </View>
                     </Pressable>
-                  </View>
-                </DataTable.Cell>
-                <DataTable.Cell style={styles.cell}>
-                  {/*                   
-                  {user.editable && (
-                  //Componente a renderizar si cumple condicion de usuario, rol, etc
-                  )} 
-                  */}
-                </DataTable.Cell>
+                  </DataTable.Cell>
+                ) : (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  ></DataTable.Cell>
+                )}
               </DataTable.Row>
             ))
           )}
@@ -324,30 +383,34 @@ const UserList = () => {
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent]}>
             <Text style={styles.loginText}>Agregar Usuario</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={displayName}
-              placeholder="Display Name"
-              onChangeText={(text) => setDisplayName(text)}
-            />
+            <Text>User Name</Text>
             <TextInput
               style={styles.modalInput}
               value={username}
               placeholder="Username"
               onChangeText={(text) => setUsername(text)}
             />
+            <Text>Email</Text>
             <TextInput
               style={styles.modalInput}
               value={email}
               placeholder="Email"
               onChangeText={(text) => setEmail(text)}
             />
-            <TextInput
+
+            <Text>Asignar rol</Text>
+            <Picker
               style={styles.modalInput}
-              value={password}
-              placeholder="Password"
-              onChangeText={(text) => setPassword(text)}
-            />
+              selectedValue={selectedRole}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedRole(itemValue)
+              }
+            >
+              {rolesList.map((rol) => (
+                <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
+              ))}
+            </Picker>
+
             <Button
               mode="contained"
               buttonColor="#359AF2"
@@ -377,30 +440,47 @@ const UserList = () => {
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalContent]}>
             <Text style={styles.loginText}>Editar Usuario</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={editDisplayName}
-              placeholder="Display Name"
-              onChangeText={(text) => setEditDisplayName(text)}
-            />
+            <Text>User Name</Text>
             <TextInput
               style={styles.modalInput}
               value={editUsername}
               placeholder="Username"
               onChangeText={(text) => setEditUsername(text)}
             />
+            <Text>Email</Text>
             <TextInput
               style={styles.modalInput}
               value={editEmail}
               placeholder="Email"
               onChangeText={(text) => setEditEmail(text)}
+              editable={false}
             />
-            <TextInput
+
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text>Habilitado</Text>
+              <Switch
+                color={'blue'}
+                value={editIsSwitchOn}
+                onValueChange={setEditIsSwitchOn}
+              />
+            </View>
+
+            <Text>Roles Asignados</Text>
+            <Text>{userRolesPlano}</Text>
+
+            <Text>Asignar rol</Text>
+            <Picker
               style={styles.modalInput}
-              value={editPassword}
-              placeholder="Password"
-              onChangeText={(text) => setEditPassword(text)}
-            />
+              selectedValue={selectedRole}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedRole(itemValue)
+              }
+            >
+              {rolesList.map((rol) => (
+                <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
+              ))}
+            </Picker>
+
             <Button
               mode="contained"
               buttonColor="#359AF2"

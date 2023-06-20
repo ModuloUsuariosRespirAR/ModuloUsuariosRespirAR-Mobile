@@ -14,8 +14,18 @@ import { Button, List } from 'react-native-paper';
 
 const RoleList = () => {
   const toast = useToast();
-  const { loadRoles, rolesList, roleModification, removeRole, createRole } =
-    useAuth();
+  const {
+    loadRoles,
+    rolesList,
+    roleModification,
+    removeRole,
+    createRole,
+    user: {
+      user: { roles }
+    }
+  } = useAuth();
+  console.log('🚀 ~ file: RoleList.js:27 ~ roles:', roles);
+
   const [selectedRole, setSelectedRole] = useState({});
   const [newRole, setNewRole] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -122,14 +132,16 @@ const RoleList = () => {
 
   return (
     <View style={styles.container}>
-      <Button
-        onPress={() => openModal('add')}
-        icon="plus"
-        mode="contained"
-        buttonColor="#00CEFE"
-      >
-        Agregar Rol
-      </Button>
+      {roles.length === 0 ? (
+        <Button
+          onPress={() => openModal('add')}
+          icon="plus"
+          mode="contained"
+          buttonColor="#00CEFE"
+        >
+          Agregar Rol
+        </Button>
+      ) : null}
       {React.Children.toArray(
         rolesList.map((rol) => (
           <List.Item
@@ -137,22 +149,27 @@ const RoleList = () => {
             left={(props) => <List.Icon {...props} icon="account-details" />}
             right={(props) => (
               <>
-                <Pressable
-                  onPress={() => {
-                    setSelectedRole({ id: rol.id, name: rol.name });
-                    openModal('edit');
-                  }}
-                >
-                  <List.Icon {...props} icon="pencil" />
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setSelectedRole({ id: rol.id, name: rol.name });
-                    openModal('delete');
-                  }}
-                >
-                  <List.Icon {...props} icon="trash-can" />
-                </Pressable>
+                {roles.find((rol) => rol.name == 'Modify') ||
+                roles.length === 0 ? (
+                  <Pressable
+                    onPress={() => {
+                      setSelectedRole({ id: rol.id, name: rol.name });
+                      openModal('edit');
+                    }}
+                  >
+                    <List.Icon {...props} icon="pencil" />
+                  </Pressable>
+                ) : null}
+                {roles.length === 0 ? (
+                  <Pressable
+                    onPress={() => {
+                      setSelectedRole({ id: rol.id, name: rol.name });
+                      openModal('delete');
+                    }}
+                  >
+                    <List.Icon {...props} icon="trash-can" />
+                  </Pressable>
+                ) : null}
               </>
             )}
           />

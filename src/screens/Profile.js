@@ -68,9 +68,9 @@ const Profile = () => {
             textAlign: 'center'
           }}
         >
-          {Children.toArray(user.roles).map((rol) => (
+          {/* {Children.toArray(user.roles).map((rol) => (
             <Text>{rol} |</Text>
-          ))}
+          ))} */}
         </Text>
       )}
       <Button

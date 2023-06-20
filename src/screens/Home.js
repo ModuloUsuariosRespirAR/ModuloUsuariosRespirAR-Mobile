@@ -80,10 +80,6 @@ const Home = () => {
     });
   };
 
-  const handleDeleteUser = () => {
-    console.log('Eliminar usuario');
-  };
-
   const styles = StyleSheet.create({
     mainContainer: {
       flex: 1
@@ -91,7 +87,6 @@ const Home = () => {
     container: {
       flex: 1,
       alignItems: 'center'
-      /* justifyContent: 'center' */
     },
     image: {
       flex: 1,
@@ -152,7 +147,7 @@ const Home = () => {
           ¡Bienvenido {user.user.username}!
         </Text>
 
-       {/*  <View style={styles.container}>
+        {/*  <View style={styles.container}>
           <HStack m={4} spacing={6}>
             <Button
               title="Agregar Usuario"
@@ -188,7 +183,6 @@ const Home = () => {
         </View> */}
 
         <View style={styles.notificationsContainer}>
-
           <View style={styles.textContainer}>
             <Text>Cantidad de usuarios: {usersList.length}</Text>
           </View>
@@ -215,7 +209,7 @@ const Home = () => {
           </View>
         </Modal> */}
 
-{/*         <Modal
+        {/*         <Modal
           visible={showAddUsrModal}
           transparent={true}
           onRequestClose={handleCloseAddUsrModal}
