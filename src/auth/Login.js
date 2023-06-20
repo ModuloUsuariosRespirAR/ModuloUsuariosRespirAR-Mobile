@@ -17,8 +17,8 @@ import { useAuth } from '../context/authContext';
 
 const Login = () => {
   const { loginUser, setIsLoading } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin@test.com');
+  const [password, setPassword] = useState('1234');
   const { passwordVisibility, rightIcon, handlePasswordVisibility } =
     useTogglePasswordShow();
   const toast = useToast();

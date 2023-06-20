@@ -4,32 +4,32 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Modal,
   Animated,
   TextInput,
-  Pressable
+  Pressable,
 } from 'react-native';
+import {Picker} from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+import { assignRol, getUserRoles } from '../services/user';
 
 import { DataTable, Switch, Button } from 'react-native-paper';
 
 import { SelectList } from 'react-native-dropdown-select-list';
 
 const UserList = () => {
-  const [isSwitchOn, setIsSwitchOn] = React.useState(true);
   const {
     loadUsers,
     usersList,
+    rolesList,
     token,
     acessToken,
     createNewUser,
     userModification,
     userDeletation,
-
   } = useAuth();
-  const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -38,22 +38,48 @@ const UserList = () => {
   const [showEditUsrModal, setShowEditUsrModal] = useState(false);
   const [showDeleteUsrModal, setShowDeleteUsrModal] = useState(false);
 
-
-  const [displayName, setDisplayName] = useState('');
+  const [createdUser, setCreatedUser] = useState(null);
+ 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = React.useState('');
+
+  const [selectedRole, setSelectedRole] = useState('');
+  const [userRoles, setUserRoles] = useState([]);
+  const [userRolesPlano, setUserRolesPlano] = useState('');
 
   const [editIsSwitchOn, setEditIsSwitchOn] = React.useState(true);
-  const [editDisplayName, setEditDisplayName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editEmail, setEditEmail] = useState('');
-  const [editPassword, setEditPassword] = useState('');
 
   const toast = useToast();
 
+  
+
   useEffect(() => loadUsers(), []);
+
+
+  useEffect(() => {
+    if (selectedUser) {
+      // Llamar a la función asincrónica getUserRoles aquí
+      getUserRoles(selectedUser.id, token)
+        .then((rolesUsuario) => {
+          console.log(rolesUsuario)
+          setUserRoles(rolesUsuario);  
+          const roleNames = rolesUsuario.role_user_assignments.map(roleAssignment => {
+            const role = rolesList.find(role => role.id === roleAssignment.role_id);
+            return role ? role.name : "Rol no encontrado";
+          });        
+          // Concatenar los nombres de los roles separados por coma
+        const concatenatedRoles = roleNames.join(", ");
+        setUserRolesPlano(concatenatedRoles)
+        })
+        .catch((error) => {
+          console.log("Error al obtener los roles del usuario:", error);
+          setUserRolesPlano("")
+        });
+
+    }
+  }, [selectedUser, token]);
 
   const showModalAddUser = () => {
     setShowAddUsrModal(true);
@@ -100,8 +126,11 @@ const UserList = () => {
             'Usuario Creado'
         });
         console.log("creo salio")
-        handleCloseAddUsrModal();
-        return;
+        console.log("result usuario creado", result)
+        setCreatedUser(result.data.user)
+        setTimeout(() => {
+          console.log(createdUser);
+        }, 1000);
       }
     } catch (error) {
       toast.show({
@@ -109,9 +138,9 @@ const UserList = () => {
       });
       console.log('error', error);
     }
-
+    
+    
     //Actualizar lista de usuarios funcion
-
     handleCloseAddUsrModal();
   };
 
@@ -119,10 +148,8 @@ const UserList = () => {
     setSelectedUser(userData);
 
     setEditIsSwitchOn(userData.enabled)
-    setEditDisplayName(userData.displayName);
     setEditUsername(userData.username);
     setEditEmail(userData.email);
-    setEditPassword(userData.password);
 
     console.log(userData);
 
@@ -251,14 +278,16 @@ const UserList = () => {
 
   const handleEditUser = () => {
     console.log('Datos del usuario Edit:', selectedUser);
-    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
     userModification(token, acessToken, selectedUser.id, editUsername, editIsSwitchOn);
+    console.log("salio y entra asign rol")
+    console.log(selectedRole)
+    assignRol(token, acessToken, selectedUser.id, selectedRole)
+    console.log("salio asign rol")
     handleCloseEditUsrModal()
   };
 
   const handleDeleteUser = () => {
     console.log('Datos del usuario Delete:', selectedUser);
-    // Aquí puedes realizar cualquier otra acción que necesites con los datos del usuario
     userDeletation(token, acessToken, selectedUser.id);
     handleCloseDeleteUsrModal()
   };
@@ -294,32 +323,15 @@ const UserList = () => {
                   <Text>{user.email}</Text>
                 </DataTable.Cell>
                 <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
-                  {/*                   
-                  {user.editable && (
-                  //Componente a renderizar si cumple condicion de usuario, rol, etc
-                  )} 
-                  */}
-
-                  
                     <Pressable onPress={() => showModalEditUser(user)}>
-                      <View style={{ paddingLeft: 10 }}>
+                      <View>
                         <Icon name="pencil" size={18} color="black" />
                       </View>
                     </Pressable>
-
-                    
-
-                    
-                  
                 </DataTable.Cell>
                 <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
-                  {/*                   
-                  {user.editable && (
-                  //Componente a renderizar si cumple condicion de usuario, rol, etc
-                  )} 
-                  */}
                   <Pressable onPress={() => showModalDeleteUser(user)}>
-                      <View >
+                      <View>
                         <Icon name="trash" size={18} color="black" />
                       </View>
                     </Pressable>
@@ -399,13 +411,28 @@ const UserList = () => {
               editable={false}
             />
 
-            <Text>Habilitado</Text>
-            <Switch
-              color={'blue'}
-              value={editIsSwitchOn}
-              onValueChange={setEditIsSwitchOn}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text>Habilitado</Text>
+              <Switch
+                color={'blue'}
+                value={editIsSwitchOn}
+                onValueChange={setEditIsSwitchOn}
+              />
+            </View>
+  
+            <Text>Roles Asignados</Text>
+            <Text>{userRolesPlano}</Text>
 
+            <Text>Asignar rol</Text>
+            <Picker
+              style={styles.modalInput}
+              selectedValue={selectedRole}
+              onValueChange={(itemValue, itemIndex) => setSelectedRole(itemValue)}
+            >
+              {rolesList.map((rol) => (
+                <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
+              ))}
+            </Picker>
             
             <Button
               mode="contained"

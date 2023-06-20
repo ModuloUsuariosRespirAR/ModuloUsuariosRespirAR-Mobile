@@ -8,7 +8,9 @@ import {
   userDelete,
   editRole,
   deleteRole,
-  addRole
+  addRole,
+  getUserRoles,
+  assignRol
 } from '../services/user';
 
 export const AuthContext = createContext({});
@@ -45,6 +47,7 @@ export const AuthProvider = ({ children }) => {
   const loadUsers = async () => {
     const usersList = await getUsers({ token });
     if (usersList !== null) {
+      console.log("usuarios bd", usersList.users)
       return setUsersList(usersList.users);
     }
     return setUsersList([]);
@@ -53,6 +56,7 @@ export const AuthProvider = ({ children }) => {
   const loadRoles = async () => {
     const rolesList = await getRoles({ token });
     if (rolesList !== null) {
+      console.log("roles bd", rolesList.roles)
       return setRolesList(rolesList.roles);
     }
     return setRolesList([]);
@@ -108,6 +112,13 @@ export const AuthProvider = ({ children }) => {
 
     return result;
   };
+
+  const userRoles = async (userId, token) => {
+    const userRoles = await getUserRoles(userId, token);
+
+    return userRoles;
+  };
+
 
   const roleModification = async (role) => {
     const result = await editRole(token, accessToken, role);
@@ -167,7 +178,8 @@ export const AuthProvider = ({ children }) => {
     logOut,
     roleModification,
     removeRole,
-    createRole
+    createRole,
+    userRoles
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
