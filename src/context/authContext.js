@@ -66,7 +66,8 @@ export const AuthProvider = ({ children }) => {
     token,
     acessToken,
     username,
-    email
+    email,
+    roleId
   ) => {
     const createdUser = await createUser(
       token,
@@ -80,6 +81,9 @@ export const AuthProvider = ({ children }) => {
 
     if (createdUser != null) {
       setUsersList([createdUser.data.user, ...usersList]);
+      
+      assignRol(token, acessToken, createdUser.data.user.id, roleId)
+      
       return createdUser;
     } else {
       return null;

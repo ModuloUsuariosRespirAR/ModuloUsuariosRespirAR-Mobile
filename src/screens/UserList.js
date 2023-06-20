@@ -112,7 +112,8 @@ const UserList = () => {
         token,
         acessToken,
         username,
-        email
+        email,
+        selectedRole
       );
       if (result === null) {
         toast.show({
@@ -128,9 +129,6 @@ const UserList = () => {
         console.log("creo salio")
         console.log("result usuario creado", result)
         setCreatedUser(result.data.user)
-        setTimeout(() => {
-          console.log(createdUser);
-        }, 1000);
       }
     } catch (error) {
       toast.show({
@@ -365,6 +363,17 @@ const UserList = () => {
               placeholder="Email"
               onChangeText={(text) => setEmail(text)}
             />
+
+            <Text>Asignar rol</Text>
+            <Picker
+              style={styles.modalInput}
+              selectedValue={selectedRole}
+              onValueChange={(itemValue, itemIndex) => setSelectedRole(itemValue)}
+            >
+              {rolesList.map((rol) => (
+                <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
+              ))}
+            </Picker>
 
             <Button
               mode="contained"
