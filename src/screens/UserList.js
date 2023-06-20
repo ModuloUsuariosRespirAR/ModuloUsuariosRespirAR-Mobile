@@ -17,8 +17,6 @@ import { assignRol, getUserRoles } from '../services/user';
 
 import { DataTable, Switch, Button } from 'react-native-paper';
 
-import { SelectList } from 'react-native-dropdown-select-list';
-
 const UserList = () => {
   const {
     loadUsers,
@@ -28,7 +26,10 @@ const UserList = () => {
     acessToken,
     createNewUser,
     userModification,
-    userDeletation
+    userDeletation,
+    user: {
+      user: { roles }
+    }
   } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState(null);
@@ -261,8 +262,6 @@ const UserList = () => {
     }
   });
 
-  const headers = ['Username', 'Email', 'Editar', 'Borrar'];
-
   const handleEditUser = () => {
     userModification(
       token,
@@ -289,19 +288,21 @@ const UserList = () => {
 
   return (
     <View style={styles.container}>
-      <Button
-        mode="contained"
-        title="Agregar Usuario"
-        buttonColor="#00CEFE"
-        icon="plus"
-        onPress={showModalAddUser}
-      >
-        Agregar Usuario
-      </Button>
+      {roles.length === 0 && (
+        <Button
+          mode="contained"
+          title="Agregar Usuario"
+          buttonColor="#00CEFE"
+          icon="plus"
+          onPress={showModalAddUser}
+        >
+          Agregar Usuario
+        </Button>
+      )}
       <ScrollView horizontal>
         <DataTable style={[{ marginTop: 10 }]}>
           <DataTable.Header style={styles.tableHeader}>
-            {React.Children.toArray(
+            {/* {React.Children.toArray(
               headers.map((header) => (
                 <DataTable.Title
                   style={header === 'Email' ? styles.emailTitle : styles.title}
@@ -309,7 +310,11 @@ const UserList = () => {
                   {header}
                 </DataTable.Title>
               ))
-            )}
+            )} */}
+            <DataTable.Title style={styles.title}>Username</DataTable.Title>
+            <DataTable.Title style={styles.emailTitle}>Email</DataTable.Title>
+            <DataTable.Title style={styles.title}></DataTable.Title>
+            <DataTable.Title style={styles.title}></DataTable.Title>
           </DataTable.Header>
           {React.Children.toArray(
             usersList.map((user) => (
@@ -320,30 +325,49 @@ const UserList = () => {
                 <DataTable.Cell style={styles.cell}>
                   <Text>{user.email}</Text>
                 </DataTable.Cell>
-                <DataTable.Cell
-                  style={[
-                    styles.cell,
-                    { flexDirection: 'row', justifyContent: 'center' }
-                  ]}
-                >
-                  <Pressable onPress={() => showModalEditUser(user)}>
-                    <View>
-                      <Icon name="pencil" size={18} color="black" />
-                    </View>
-                  </Pressable>
-                </DataTable.Cell>
-                <DataTable.Cell
-                  style={[
-                    styles.cell,
-                    { flexDirection: 'row', justifyContent: 'center' }
-                  ]}
-                >
-                  <Pressable onPress={() => showModalDeleteUser(user)}>
-                    <View>
-                      <Icon name="trash" size={18} color="black" />
-                    </View>
-                  </Pressable>
-                </DataTable.Cell>
+                {roles.find((rol) => rol.name == 'Modify') ||
+                roles.length === 0 ? (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  >
+                    <Pressable onPress={() => showModalEditUser(user)}>
+                      <View>
+                        <Icon name="pencil" size={18} color="black" />
+                      </View>
+                    </Pressable>
+                  </DataTable.Cell>
+                ) : (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  ></DataTable.Cell>
+                )}
+                {roles.length === 0 ? (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  >
+                    <Pressable onPress={() => showModalDeleteUser(user)}>
+                      <View>
+                        <Icon name="trash" size={18} color="black" />
+                      </View>
+                    </Pressable>
+                  </DataTable.Cell>
+                ) : (
+                  <DataTable.Cell
+                    style={[
+                      styles.cell,
+                      { flexDirection: 'row', justifyContent: 'center' }
+                    ]}
+                  ></DataTable.Cell>
+                )}
               </DataTable.Row>
             ))
           )}
