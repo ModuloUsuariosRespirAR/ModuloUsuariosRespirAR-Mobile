@@ -8,9 +8,9 @@ import {
   Modal,
   Animated,
   TextInput,
-  Pressable,
+  Pressable
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { assignRol, getUserRoles } from '../services/user';
@@ -28,7 +28,7 @@ const UserList = () => {
     acessToken,
     createNewUser,
     userModification,
-    userDeletation,
+    userDeletation
   } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState(null);
@@ -39,7 +39,7 @@ const UserList = () => {
   const [showDeleteUsrModal, setShowDeleteUsrModal] = useState(false);
 
   const [createdUser, setCreatedUser] = useState(null);
- 
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
 
@@ -53,31 +53,33 @@ const UserList = () => {
 
   const toast = useToast();
 
-  
-
   useEffect(() => loadUsers(), []);
-
 
   useEffect(() => {
     if (selectedUser) {
       // Llamar a la función asincrónica getUserRoles aquí
       getUserRoles(selectedUser.id, token)
         .then((rolesUsuario) => {
-          console.log(rolesUsuario)
-          setUserRoles(rolesUsuario);  
-          const roleNames = rolesUsuario.role_user_assignments.map(roleAssignment => {
-            const role = rolesList.find(role => role.id === roleAssignment.role_id);
-            return role ? role.name : "Rol no encontrado";
-          });        
+          setUserRoles(rolesUsuario);
+          const roleNames = rolesUsuario.role_user_assignments.map(
+            (roleAssignment) => {
+              const role = rolesList.find(
+                (role) => role.id === roleAssignment.role_id
+              );
+              return role ? role.name : 'Rol no encontrado';
+            }
+          );
           // Concatenar los nombres de los roles separados por coma
-        const concatenatedRoles = roleNames.join(", ");
-        setUserRolesPlano(concatenatedRoles)
+          const concatenatedRoles = roleNames.join(', ');
+          setUserRolesPlano(concatenatedRoles);
         })
         .catch((error) => {
-          console.log("Error al obtener los roles del usuario:", error);
-          setUserRolesPlano("")
+          toast.show({
+            description: 'Error al obtener los roles del usuario:',
+            error
+          });
+          setUserRolesPlano('');
         });
-
     }
   }, [selectedUser, token]);
 
@@ -120,37 +122,27 @@ const UserList = () => {
           description:
             'El usuario ó contraseña ingresado es incorrecto ó no se encuentra registrado'
         });
-      }else if (result.status === 200){
-        console.log("creo entro")
+      } else if (result.status === 200) {
         toast.show({
-          description:
-            'Usuario Creado'
+          description: 'Usuario Creado'
         });
-        console.log("creo salio")
-        console.log("result usuario creado", result)
-        setCreatedUser(result.data.user)
+        setCreatedUser(result.data.user);
       }
     } catch (error) {
       toast.show({
         description: 'Hubo un error, intente nuevamente'
       });
-      console.log('error', error);
     }
-    
-    
+
     //Actualizar lista de usuarios funcion
     handleCloseAddUsrModal();
   };
 
   const showModalEditUser = (userData) => {
     setSelectedUser(userData);
-
-    setEditIsSwitchOn(userData.enabled)
+    setEditIsSwitchOn(userData.enabled);
     setEditUsername(userData.username);
     setEditEmail(userData.email);
-
-    console.log(userData);
-
     setShowEditUsrModal(true);
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -171,9 +163,6 @@ const UserList = () => {
 
   const showModalDeleteUser = (userData) => {
     setSelectedUser(userData);
-
-    console.log(userData);
-
     setShowDeleteUsrModal(true);
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -204,7 +193,7 @@ const UserList = () => {
     title: {
       width: 50
     },
-    emailTitle : {
+    emailTitle: {
       width: 100
     },
     cell: {
@@ -268,26 +257,34 @@ const UserList = () => {
       padding: 10
     },
     loginText: {
-      fontWeight: "bold",
+      fontWeight: 'bold'
     }
   });
 
   const headers = ['Username', 'Email', 'Editar', 'Borrar'];
 
   const handleEditUser = () => {
-    console.log('Datos del usuario Edit:', selectedUser);
-    userModification(token, acessToken, selectedUser.id, editUsername, editIsSwitchOn);
-    console.log("salio y entra asign rol")
-    console.log(selectedRole)
-    assignRol(token, acessToken, selectedUser.id, selectedRole)
-    console.log("salio asign rol")
-    handleCloseEditUsrModal()
+    userModification(
+      token,
+      acessToken,
+      selectedUser.id,
+      editUsername,
+      editIsSwitchOn
+    );
+    selectedRole !== '' &&
+      assignRol(token, acessToken, selectedUser.id, selectedRole);
+    handleCloseEditUsrModal();
+    toast.show({
+      description: 'Usuario actualizado'
+    });
   };
 
   const handleDeleteUser = () => {
-    console.log('Datos del usuario Delete:', selectedUser);
     userDeletation(token, acessToken, selectedUser.id);
-    handleCloseDeleteUsrModal()
+    handleCloseDeleteUsrModal();
+    toast.show({
+      description: 'Usuario eliminado'
+    });
   };
 
   return (
@@ -306,8 +303,11 @@ const UserList = () => {
           <DataTable.Header style={styles.tableHeader}>
             {React.Children.toArray(
               headers.map((header) => (
-                <DataTable.Title style={header === "Email" ? styles.emailTitle : styles.title}>
-                  {header}</DataTable.Title>
+                <DataTable.Title
+                  style={header === 'Email' ? styles.emailTitle : styles.title}
+                >
+                  {header}
+                </DataTable.Title>
               ))
             )}
           </DataTable.Header>
@@ -320,19 +320,29 @@ const UserList = () => {
                 <DataTable.Cell style={styles.cell}>
                   <Text>{user.email}</Text>
                 </DataTable.Cell>
-                <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
-                    <Pressable onPress={() => showModalEditUser(user)}>
-                      <View>
-                        <Icon name="pencil" size={18} color="black" />
-                      </View>
-                    </Pressable>
+                <DataTable.Cell
+                  style={[
+                    styles.cell,
+                    { flexDirection: 'row', justifyContent: 'center' }
+                  ]}
+                >
+                  <Pressable onPress={() => showModalEditUser(user)}>
+                    <View>
+                      <Icon name="pencil" size={18} color="black" />
+                    </View>
+                  </Pressable>
                 </DataTable.Cell>
-                <DataTable.Cell style={[styles.cell, { flexDirection: 'row', justifyContent: 'center' }]}>
+                <DataTable.Cell
+                  style={[
+                    styles.cell,
+                    { flexDirection: 'row', justifyContent: 'center' }
+                  ]}
+                >
                   <Pressable onPress={() => showModalDeleteUser(user)}>
-                      <View>
-                        <Icon name="trash" size={18} color="black" />
-                      </View>
-                    </Pressable>
+                    <View>
+                      <Icon name="trash" size={18} color="black" />
+                    </View>
+                  </Pressable>
                 </DataTable.Cell>
               </DataTable.Row>
             ))
@@ -368,7 +378,9 @@ const UserList = () => {
             <Picker
               style={styles.modalInput}
               selectedValue={selectedRole}
-              onValueChange={(itemValue, itemIndex) => setSelectedRole(itemValue)}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedRole(itemValue)
+              }
             >
               {rolesList.map((rol) => (
                 <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
@@ -428,7 +440,7 @@ const UserList = () => {
                 onValueChange={setEditIsSwitchOn}
               />
             </View>
-  
+
             <Text>Roles Asignados</Text>
             <Text>{userRolesPlano}</Text>
 
@@ -436,20 +448,21 @@ const UserList = () => {
             <Picker
               style={styles.modalInput}
               selectedValue={selectedRole}
-              onValueChange={(itemValue, itemIndex) => setSelectedRole(itemValue)}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedRole(itemValue)
+              }
             >
               {rolesList.map((rol) => (
                 <Picker.Item key={rol.id} label={rol.name} value={rol.id} />
               ))}
             </Picker>
-            
+
             <Button
               mode="contained"
               buttonColor="#359AF2"
               title="Agregar"
               onPress={handleEditUser}
             >
-
               Guardar
             </Button>
             <Button

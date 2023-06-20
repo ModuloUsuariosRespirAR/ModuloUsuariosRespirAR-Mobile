@@ -25,6 +25,8 @@ export const AuthProvider = ({ children }) => {
   const [rolesList, setRolesList] = useState([]);
   const [userCreated, setUserCreated] = useState(null);
 
+  const PASS_DEFAULT = '1234';
+
   const loginUser = async ({ data }) => {
     const userLogged = await login({ data });
     if (userLogged !== null) {
@@ -32,14 +34,7 @@ export const AuthProvider = ({ children }) => {
       setToken(userLogged['X-Auth-token']);
       setAccessToken(userLogged['accessToken']);
       setIsLoggedIn(true);
-
-      console.log('usuario Logueado', userLogged);
     }
-
-    console.log(userLogged);
-    console.log('Login authToken', token);
-    console.log('Login  accessToken', accessToken);
-
     setIsLoading(false);
     return userLogged;
   };
@@ -47,7 +42,6 @@ export const AuthProvider = ({ children }) => {
   const loadUsers = async () => {
     const usersList = await getUsers({ token });
     if (usersList !== null) {
-      console.log("usuarios bd", usersList.users)
       return setUsersList(usersList.users);
     }
     return setUsersList([]);
@@ -56,34 +50,25 @@ export const AuthProvider = ({ children }) => {
   const loadRoles = async () => {
     const rolesList = await getRoles({ token });
     if (rolesList !== null) {
-      console.log("roles bd", rolesList.roles)
       return setRolesList(rolesList.roles);
     }
     return setRolesList([]);
   };
 
-  const createNewUser = async (
-    token,
-    acessToken,
-    username,
-    email,
-    roleId
-  ) => {
+  const createNewUser = async (token, acessToken, username, email, roleId) => {
     const createdUser = await createUser(
       token,
       acessToken,
       username,
       email,
-      "1234"
+      PASS_DEFAULT
     );
-
-    console.log('createdUser', createdUser);
 
     if (createdUser != null) {
       setUsersList([createdUser.data.user, ...usersList]);
-      
-      assignRol(token, acessToken, createdUser.data.user.id, roleId)
-      
+
+      assignRol(token, acessToken, createdUser.data.user.id, roleId);
+
       return createdUser;
     } else {
       return null;
@@ -97,14 +82,25 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  const userModification = async (token, accessToken, userId, username, enabled) => {
-    console.log("entro")
+  const userModification = async (
+    token,
+    accessToken,
+    userId,
+    username,
+    enabled
+  ) => {
     const user = await userEdit(token, accessToken, userId, username, enabled);
-    console.log("user updated", user)
     const valueUpdated = username;
     const usuarios = usersList.map((userParam) =>
-    userParam.id === userId ? { id: userId, username: valueUpdated, email: userParam.email, enabled: enabled } : userParam
-  );
+      userParam.id === userId
+        ? {
+            id: userId,
+            username: valueUpdated,
+            email: userParam.email,
+            enabled: enabled
+          }
+        : userParam
+    );
     setUsersList(usuarios);
     return user;
   };
@@ -119,10 +115,8 @@ export const AuthProvider = ({ children }) => {
 
   const userRoles = async (userId, token) => {
     const userRoles = await getUserRoles(userId, token);
-
     return userRoles;
   };
-
 
   const roleModification = async (role) => {
     const result = await editRole(token, accessToken, role);

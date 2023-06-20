@@ -7,7 +7,6 @@ export const login = async ({ data }) => {
       Constants.manifest.extra.backendUrl + '/login',
       data
     );
-    console.log(response.data);
     return response.data;
   } catch (error) {
     throw new error();
@@ -55,10 +54,6 @@ export const createUser = async (
     password: password
   };
 
-  console.log('user data', user);
-
-  console.log('Login authToken; accessToken', token + '; ' + acessToken);
-
   try {
     const result = await axios.post(
       Constants.manifest.extra.backendUrl + '/users/create',
@@ -69,8 +64,6 @@ export const createUser = async (
         headers: { 'X-Auth-token': token, accesstoken: acessToken }
       }
     );
-
-    console.log('result', result);
 
     if (result.access_token) {
       return result.access_token;
@@ -96,19 +89,25 @@ export const createUser = async (
   }
 };
 
-export const userEdit = async (token, accessToken, userId, username, enabled) => {
+export const userEdit = async (
+  token,
+  accessToken,
+  userId,
+  username,
+  enabled
+) => {
   const user = {
     username: username,
-    enabled: enabled,
+    enabled: enabled
   };
   const result = await axios
     .put(
-      Constants.manifest.extra.backendUrl + "/users/update/" + userId,
+      Constants.manifest.extra.backendUrl + '/users/update/' + userId,
       {
-        user,
+        user
       },
       {
-        headers: { "X-Auth-token": token, accesstoken: accessToken },
+        headers: { 'X-Auth-token': token, accesstoken: accessToken }
       }
     )
     .then((res) => {
@@ -119,15 +118,15 @@ export const userEdit = async (token, accessToken, userId, username, enabled) =>
         return {
           error: {
             statusCode: error.response.status,
-            message: error.response.data,
-          },
+            message: error.response.data
+          }
         };
       } else {
         return {
           error: {
             statusCode: 500,
-            message: "Keyrock connection failed",
-          },
+            message: 'Keyrock connection failed'
+          }
         };
       }
     });
@@ -277,24 +276,20 @@ export const addRole = async (token, accessToken, role) => {
   }
 };
 
-
-
 export const assignRol = async (token, accessToken, userId, rolId) => {
-  console.log("entra asigno rol api")
   const result = await axios
     .put(
-      Constants.manifest.extra.backendUrl + "/roles/assign",
+      Constants.manifest.extra.backendUrl + '/roles/assign',
       { rolId: rolId, userId: userId },
       {
         headers: {
-          "X-Auth-token": token,
-          "Content-Type": "application/json",
-          accessToken: accessToken,
-        },
+          'X-Auth-token': token,
+          'Content-Type': 'application/json',
+          accessToken: accessToken
+        }
       }
     )
     .then((response) => {
-      console.log("rol asignado",response)
       return response.data;
     })
     .catch((error) => {
@@ -302,32 +297,32 @@ export const assignRol = async (token, accessToken, userId, rolId) => {
         return {
           error: {
             statusCode: error.response.status,
-            message: error.response.data.error.message,
-          },
+            message: error.response.data.error.message
+          }
         };
       } else {
         return {
           error: {
             statusCode: 500,
-            message: "Keyrock connection failed",
-          },
+            message: 'Keyrock connection failed'
+          }
         };
       }
     });
-    console.log("salio asigno rol", result)
   return result;
 };
 
-
 export const getUserRoles = async (userId, token) => {
   const result = await axios
-    .get(Constants.manifest.extra.backendUrl + "/users/user/" + userId + "/roles", {
-      headers: {
-        "X-Auth-token": token,
-      },
-    })
+    .get(
+      Constants.manifest.extra.backendUrl + '/users/user/' + userId + '/roles',
+      {
+        headers: {
+          'X-Auth-token': token
+        }
+      }
+    )
     .then((response) => {
-      console.log("user Roles service: ",response.data.role_user_assignments)
       return response.data;
     })
     .catch((error) => {
@@ -335,15 +330,15 @@ export const getUserRoles = async (userId, token) => {
         return {
           error: {
             statusCode: error.response.status,
-            message: error.response.data.error.message,
-          },
+            message: error.response.data.error.message
+          }
         };
       } else {
         return {
           error: {
             statusCode: 500,
-            message: "Keyrock connection failed",
-          },
+            message: 'Keyrock connection failed'
+          }
         };
       }
     });

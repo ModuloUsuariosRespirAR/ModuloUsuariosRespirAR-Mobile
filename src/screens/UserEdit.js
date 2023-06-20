@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet  } from 'react-native';
+import { View, TextInput, Button, StyleSheet } from 'react-native';
 
 const UserEdit = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-
-  const handleSave = () => {
-    // Lógica para guardar usuario aquí
-    console.log('Guardar usuario:', username, email);
-  };
 
   const styles = StyleSheet.create({
     container: {
@@ -19,18 +14,17 @@ const UserEdit = () => {
     }
   });
 
-
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Nombre de usuario"
         value={username}
-        onChangeText={text => setUsername(text)}
+        onChangeText={(text) => setUsername(text)}
       />
       <TextInput
         placeholder="Correo electrónico"
         value={email}
-        onChangeText={text => setEmail(text)}
+        onChangeText={(text) => setEmail(text)}
       />
       <Button title="Guardar" onPress={handleSave} />
     </View>
