@@ -24,7 +24,6 @@ const RoleList = () => {
       user: { roles }
     }
   } = useAuth();
-  console.log('🚀 ~ file: RoleList.js:27 ~ roles:', roles);
 
   const [selectedRole, setSelectedRole] = useState({});
   const [newRole, setNewRole] = useState('');
