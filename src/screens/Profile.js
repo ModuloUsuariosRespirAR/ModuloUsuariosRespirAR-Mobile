@@ -1,9 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { Button } from 'native-base';
-import React, { Children } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { Header } from '../layout/Header';
 import { useAuth } from '../context/authContext';
 
 const Profile = () => {
@@ -68,9 +66,12 @@ const Profile = () => {
             textAlign: 'center'
           }}
         >
-          {/* {Children.toArray(user.roles).map((rol) => (
-            <Text>{rol} |</Text>
-          ))} */}
+          Roles:
+          <>
+            {user.roles.map((rol) => {
+              return <Text>{rol.name} | </Text>;
+            })}
+          </>
         </Text>
       )}
       <Button
